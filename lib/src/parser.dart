@@ -59,7 +59,14 @@ class SvgParser {
   void loadFromString(String svgString) {
     _pathSegments.clear();
     var index = 0; //number of parsed path elements
-    var doc = XmlDocument.parse(svgString);
+    RegExp regex = RegExp(r'<svg(.*?)<\/svg>', dotAll: true);
+    Iterable<Match> matches = regex.allMatches(svgString);
+    String svg = '';
+    for (Match match in matches) {
+      String svgContent = match.group(0)!;
+      svg = svgContent;
+    }
+    var doc = XmlDocument.parse(svg);
     final style =
         doc.firstElementChild?.childElements.first.getAttributeNode('style');
 
@@ -167,7 +174,7 @@ class SvgParser {
   }
 
   /// Parses Svg from provided asset path
-  Future<void> loadFromFile(String file) async {
+  Future<void> loadFromAsset(String file) async {
     _pathSegments.clear();
     var svgString = await rootBundle.loadString(file);
     loadFromString(svgString);
@@ -193,6 +200,7 @@ class PathSegment {
   PathSegment()
       : strokeWidth = 0.0,
         color = Colors.black,
+        animateStrokeColor = Colors.black,
         firstSegmentOfPathIndex = 0,
         relativeIndex = 0,
         pathIndex = 0 {
@@ -206,6 +214,7 @@ class PathSegment {
   late Path path;
   late double strokeWidth;
   late Color color;
+  late Color animateStrokeColor;
 
   /// Length of the segment path
   late double length;
@@ -255,7 +264,7 @@ class PathModifier extends PathProxy {
 
 class TextSegment {
   final String text;
-  final TextStyle textStyle;
+  TextStyle textStyle;
   final Offset offset;
 
   TextSegment(

@@ -8,20 +8,55 @@ import 'callback.dart';
 
 import 'dart:ui' as ui;
 
-import 'debug.dart';
+class PaintedPainter extends PathPainter {
+  PaintedPainter(
+      Animation<double> animation,
+      List<PathSegment> pathSegments,
+      List<TextSegment> textSegments,
+      Size? customDimensions,
+      List<Paint> paints,
+      PaintedSegmentCallback? onFinishCallback,
+      bool scaleToViewport,
+      DebugOptions debugOptions)
+      : super(animation, pathSegments, textSegments, customDimensions, paints,
+            onFinishCallback, scaleToViewport, debugOptions);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas = super.paintOrDebug(canvas, size);
+    if (canPaint) {
+      //pathSegments for AllAtOncePainter are always in the order of PathOrders.original
+      for (var segment in pathSegments!) {
+        var paint = (paints.isNotEmpty)
+            ? paints[segment.pathIndex]
+            : (Paint()
+              ..color = segment.color
+              ..style = PaintingStyle.stroke
+              ..strokeCap = StrokeCap.round
+              ..strokeJoin = StrokeJoin.round
+              ..strokeWidth = segment.strokeWidth);
+        canvas.drawPath(segment.path, paint);
+      }
+
+      //No callback etc. needed
+      // super.onFinish(canvas, size);
+    }
+  }
+}
 
 /// Paints a list of [PathSegment] one-by-one to a canvas
 class OneByOnePainter extends PathPainter {
   OneByOnePainter(
       Animation<double> animation,
       List<PathSegment> pathSegments,
+      List<TextSegment> textSegments,
       Size? customDimensions,
       List<Paint> paints,
       PaintedSegmentCallback? onFinishCallback,
       bool scaleToViewport,
       DebugOptions debugOptions)
       : totalPathSum = 0,
-        super(animation, pathSegments, customDimensions, paints,
+        super(animation, pathSegments, textSegments, customDimensions, paints,
             onFinishCallback, scaleToViewport, debugOptions) {
     if (this.pathSegments != null) {
       for (var e in this.pathSegments!) {
@@ -94,9 +129,14 @@ class OneByOnePainter extends PathPainter {
             : (Paint() //Paint per path to do implement Paint per PathSegment?
               //to do Debug disappearing first lineSegment
               // ..color = (segment.relativeIndex == 0 && segment.pathIndex== 0) ? Colors.red : ((segment.relativeIndex == 1) ? Colors.blue : segment.color)
-              ..color = segment.color
+              ..color = animation.value == 1.0
+                  ? segment.color
+                  : segment.pathIndex == currentIndex + 1
+                      ? segment.animateStrokeColor
+                      : segment.color
               ..style = PaintingStyle.stroke
-              ..strokeCap = StrokeCap.square
+              ..strokeCap = StrokeCap.round
+              ..strokeJoin = StrokeJoin.round
               ..strokeWidth = segment.strokeWidth);
         canvas.drawPath(segment.path, paint);
       }
@@ -105,12 +145,12 @@ class OneByOnePainter extends PathPainter {
         //[3.4] Remove last subPath
         toPaint.remove(lastPathSegment);
         lastPathSegment.path = tmp;
+      } else {
+        super.onFinish(canvas, size, lastPainted: toPaint.length - 1);
       }
 
       //to do Problem: Path drawning is a continous iteration over the length of all segments. To make a callback which fires exactly when path is drawn is therefore not possible (I can only ensure one of the two cases: 1) segment is completely drawn 2) no next segment was started to be drawn yet - For now: 1)
       // double remainingLength = lastPathSegment.length - subPathLength;
-
-      super.onFinish(canvas, size, lastPainted: toPaint.length - 1);
     } else {
       paintedSegmentIndex = 0;
       _paintedLength = 0.0;
@@ -123,6 +163,7 @@ abstract class PathPainter extends CustomPainter {
   PathPainter(
       this.animation,
       this.pathSegments,
+      this.textSegments,
       this.customDimensions,
       this.paints,
       this.onFinishCallback,
@@ -145,6 +186,8 @@ abstract class PathPainter extends CustomPainter {
 
   /// Each [PathSegment] represents a continuous Path element of the parsed Svg
   List<PathSegment>? pathSegments;
+
+  List<TextSegment> textSegments;
 
   /// Substitutes the paint object for each [PathSegment]
   List<Paint> paints;
@@ -266,14 +309,32 @@ abstract class PathPainter extends CustomPainter {
     return _ScaleFactor(ddx, ddy);
   }
 
+  void drawDash(Canvas canvas, Size size) {
+    double dashWidth = 9, dashSpace = 5, startX = 0, startY = 0;
+    final paint = Paint()
+      ..color = debugOptions.viewPortColor
+      ..strokeWidth = 1;
+    while (startX < size.width) {
+      canvas.drawLine(Offset(startX, size.height / 2),
+          Offset(startX + dashWidth, size.height / 2), paint);
+      startX += dashWidth + dashSpace;
+    }
+    while (startY < size.height) {
+      canvas.drawLine(Offset(size.width / 2, startY),
+          Offset(size.width / 2, startY + dashWidth), paint);
+      startY += dashWidth + dashSpace;
+    }
+  }
+
   void viewBoxToCanvas(Canvas canvas, Size size) {
     if (debugOptions.showViewPort) {
-      var clipRect1 = Offset.zero & size;
-      var ppp = Paint()
-        ..style = PaintingStyle.stroke
-        ..color = Colors.green
-        ..strokeWidth = 10.50;
-      canvas.drawRect(clipRect1, ppp);
+      // var clipRect1 = Offset.zero & size;
+      // var ppp = Paint()
+      //   ..style = PaintingStyle.stroke
+      //   ..color = Colors.green
+      //   ..strokeWidth = 10.50;
+      // canvas.drawRect(clipRect1, ppp);
+      drawDash(canvas, size);
     }
 
     if (scaleToViewport) {
@@ -294,19 +355,37 @@ abstract class PathPainter extends CustomPainter {
       }
     }
 
-    //Clip bounds
-    var clipRect = pathBoundingBox;
-    if (!(debugOptions.showBoundingBox || debugOptions.showViewPort)) {
-      canvas.clipRect(clipRect!);
+    if (debugOptions.showNumber) {
+      for (var t in textSegments) {
+        final textSpan = TextSpan(
+          text: t.text,
+          style: t.textStyle,
+        );
+
+        final textPainter = TextPainter(
+          text: textSpan,
+          textDirection: TextDirection.ltr,
+          textAlign: TextAlign.center,
+        );
+
+        textPainter.layout();
+        textPainter.paint(canvas, t.offset - const Offset(0, 7));
+      }
     }
 
-    if (debugOptions.showBoundingBox) {
-      var pp = Paint()
-        ..style = PaintingStyle.stroke
-        ..color = Colors.red
-        ..strokeWidth = 0.500;
-      canvas.drawRect(clipRect!, pp);
-    }
+    //Clip bounds
+    // var clipRect = pathBoundingBox;
+    // if (!(debugOptions.showBoundingBox || debugOptions.showViewPort)) {
+    //   canvas.clipRect(clipRect!);
+    // }
+
+    // if (debugOptions.showBoundingBox) {
+    //   var pp = Paint()
+    //     ..style = PaintingStyle.stroke
+    //     ..color = Colors.red
+    //     ..strokeWidth = 0.500;
+    //   canvas.drawRect(clipRect!, pp);
+    // }
   }
 
   @override

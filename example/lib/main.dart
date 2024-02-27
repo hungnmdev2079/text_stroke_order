@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:text_stroke_order/text_stroke_order.dart';
 
 void main() {
@@ -42,17 +41,10 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 </g>
 </svg>
 """;
-  SvgParser parser = SvgParser();
-
-  late AnimationController animationController;
 
   @override
   void initState() {
     super.initState();
-    animationController =
-        AnimationController(vsync: this, duration: Duration(seconds: 4));
-    parser.loadFromString(svg);
-    animationController.forward();
   }
 
   @override
@@ -63,29 +55,20 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Container(
-            width: 300,
-            height: 300,
-            child: FittedBox(
-              child: AnimatedBuilder(
-                  animation: animationController,
-                  builder: (context, child) {
-                    return CustomPaint(
-                        foregroundPainter: OneByOnePainter(
-                            animationController,
-                            parser.getPathSegments(),
-                            null,
-                            [],
-                            null,
-                            true,
-                            DebugOptions()),
-                        child: Container(
-                          // color: Colors.blue,
-                          width: 109,
-                          height: 109,
-                        ));
-                  }),
-            ),
+          child: TextStrokeOrder(
+            width: 200,
+            height: 200,
+            strokeColor: Colors.black,
+            animatingStrokeColor: Colors.red,
+            //strokeWidth: 8,
+            dashColor: const Color.fromARGB(255, 3, 3, 3).withOpacity(0.2),
+            isShowNumber: true,
+            numberStyle: const TextStyle(
+                color: Colors.grey, fontSize: 6, fontWeight: FontWeight.bold),
+            provider: SvgProvider.network(
+                'https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/05270.svg'),
+            animationDuration: Duration(milliseconds: 600),
+            loadingBuilder: (context) => SizedBox(),
           ),
         ),
       ),

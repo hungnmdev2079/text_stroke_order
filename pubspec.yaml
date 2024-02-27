@@ -13,6 +13,7 @@ dependencies:
   plugin_platform_interface: ^2.0.2
 
   xml:
+  flutter_cache_manager:
 
 dev_dependencies:
   flutter_test:

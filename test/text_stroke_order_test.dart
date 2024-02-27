@@ -7,23 +7,20 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 class MockTextStrokeOrderPlatform
     with MockPlatformInterfaceMixin
     implements TextStrokeOrderPlatform {
-
   @override
   Future<String?> getPlatformVersion() => Future.value('42');
 }
 
 void main() {
-  final TextStrokeOrderPlatform initialPlatform = TextStrokeOrderPlatform.instance;
+  final TextStrokeOrderPlatform initialPlatform =
+      TextStrokeOrderPlatform.instance;
 
   test('$MethodChannelTextStrokeOrder is the default instance', () {
     expect(initialPlatform, isInstanceOf<MethodChannelTextStrokeOrder>());
   });
 
   test('getPlatformVersion', () async {
-    TextStrokeOrder textStrokeOrderPlugin = TextStrokeOrder();
     MockTextStrokeOrderPlatform fakePlatform = MockTextStrokeOrderPlatform();
     TextStrokeOrderPlatform.instance = fakePlatform;
-
-    expect(await textStrokeOrderPlugin.getPlatformVersion(), '42');
   });
 }

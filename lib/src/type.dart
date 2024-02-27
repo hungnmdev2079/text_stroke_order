@@ -1,0 +1,1 @@
+enum TextStrokeOrderType { animation, none }
