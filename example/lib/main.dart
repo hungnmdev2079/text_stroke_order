@@ -13,7 +13,7 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
   final svg =
       """<svg xmlns="http://www.w3.org/2000/svg" width="109" height="109" viewBox="0 0 109 109">
 <g id="kvg:StrokePaths_0f9a8" style="fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;">
@@ -44,10 +44,15 @@ class _MyAppState extends State<MyApp> {
 """;
   SvgParser parser = SvgParser();
 
+  late AnimationController animationController;
+
   @override
   void initState() {
     super.initState();
+    animationController =
+        AnimationController(vsync: this, duration: Duration(seconds: 4));
     parser.loadFromString(svg);
+    animationController.forward();
   }
 
   @override
@@ -62,15 +67,24 @@ class _MyAppState extends State<MyApp> {
             width: 300,
             height: 300,
             child: FittedBox(
-              child: CustomPaint(
-                  foregroundPainter: MyPainter(
-                      listPathSegments: parser.getPathSegments(),
-                      listTextSegments: parser.getTextSegments()),
-                  child: Container(
-                    // color: Colors.blue,
-                    width: 109,
-                    height: 109,
-                  )),
+              child: AnimatedBuilder(
+                  animation: animationController,
+                  builder: (context, child) {
+                    return CustomPaint(
+                        foregroundPainter: OneByOnePainter(
+                            animationController,
+                            parser.getPathSegments(),
+                            null,
+                            [],
+                            null,
+                            true,
+                            DebugOptions()),
+                        child: Container(
+                          // color: Colors.blue,
+                          width: 109,
+                          height: 109,
+                        ));
+                  }),
             ),
           ),
         ),
@@ -91,7 +105,7 @@ class MyPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (var p in listPathSegments) {
       final Paint paint = Paint()
-        ..color = Colors.orange
+        ..color = Colors.green
         ..style = PaintingStyle.stroke
         ..strokeWidth = p.strokeWidth + 2
         ..strokeCap = StrokeCap.round
@@ -113,7 +127,7 @@ class MyPainter extends CustomPainter {
       );
 
       textPainter.layout();
-      textPainter.paint(canvas, t.offset - const Offset(0, 7));
+      textPainter.paint(canvas, t.offset - const Offset(0, 8));
     }
   }
 
