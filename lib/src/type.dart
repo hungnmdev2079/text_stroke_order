@@ -1,1 +1,1 @@
-enum TextStrokeOrderType { animation, none }
+enum TextStrokeOrderType { animation, followTutorial, none }

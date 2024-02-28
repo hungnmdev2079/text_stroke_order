@@ -203,7 +203,15 @@ class PathSegment {
         animateStrokeColor = Colors.black,
         firstSegmentOfPathIndex = 0,
         relativeIndex = 0,
-        pathIndex = 0 {
+        pathIndex = 0,
+        isTutorial = false,
+        isDoneTutorial = false,
+        isShowDashArrow = false,
+        dashArrowColor = Colors.grey,
+        dashSpace = 3,
+        dashWith = 3,
+        handleSize = 6,
+        handleColor = Colors.black {
     //That is fun.
     // List colors = [Colors.red, Colors.green, Colors.yellow];
     // Random random = new Random();
@@ -218,6 +226,22 @@ class PathSegment {
 
   /// Length of the segment path
   late double length;
+
+  late bool isTutorial;
+
+  late bool isDoneTutorial;
+
+  late bool isShowDashArrow;
+
+  late Color dashArrowColor;
+
+  late double dashSpace;
+
+  late double dashWith;
+
+  late double handleSize;
+
+  late Color handleColor;
 
   /// Denotes the index of the first segment of the containing path when PathOrder.original
   int firstSegmentOfPathIndex;

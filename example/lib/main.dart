@@ -56,13 +56,15 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
         ),
         body: Center(
           child: TextStrokeOrder(
-            width: 200,
-            height: 200,
-            strokeColor: Colors.black,
-            animatingStrokeColor: Colors.red,
-            //strokeWidth: 8,
+            type: TextStrokeOrderType.followTutorial,
+            width: 300,
+            height: 300,
+            strokeColor: Colors.grey.shade300,
+            animatingStrokeColor: Colors.orange,
+            strokeWidth: 8,
+            pading: 8,
             dashColor: const Color.fromARGB(255, 3, 3, 3).withOpacity(0.2),
-            isShowNumber: true,
+            isShowNumber: false,
             numberStyle: const TextStyle(
                 color: Colors.grey, fontSize: 6, fontWeight: FontWeight.bold),
             provider: SvgProvider.network(

@@ -47,7 +47,7 @@ class AnimationStrokeOrder extends StatefulWidget {
 }
 
 class _AnimationStrokeOrderState extends State<AnimationStrokeOrder>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late AnimationController animation;
 
   @override

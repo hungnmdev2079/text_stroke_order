@@ -16,10 +16,18 @@ class PaintedPainter extends PathPainter {
       Size? customDimensions,
       List<Paint> paints,
       PaintedSegmentCallback? onFinishCallback,
+      this.handlePositionCallback,
       bool scaleToViewport,
       DebugOptions debugOptions)
       : super(animation, pathSegments, textSegments, customDimensions, paints,
             onFinishCallback, scaleToViewport, debugOptions);
+  @override
+  bool? hitTest(Offset position) {
+    print(position);
+    return super.hitTest(position);
+  }
+
+  Function(Offset position)? handlePositionCallback;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -36,6 +44,92 @@ class PaintedPainter extends PathPainter {
               ..strokeJoin = StrokeJoin.round
               ..strokeWidth = segment.strokeWidth);
         canvas.drawPath(segment.path, paint);
+      }
+
+      final indexSegment =
+          pathSegments?.indexWhere((element) => element.isTutorial) ?? -1;
+      if (indexSegment >= 0) {
+        final segment = pathSegments![indexSegment];
+        if (segment.isTutorial) {
+          if (!segment.isDoneTutorial) {
+            var drawLength = segment.length / 4;
+            var pathMetric = segment.path.computeMetrics().first;
+
+            double dashLength = 0;
+            double dashWidth = segment.dashWith;
+            double dashSpace = segment.dashSpace;
+            while (dashLength < segment.length - dashSpace - dashWidth) {
+              var dashStart = dashLength;
+              var dashEnd = dashStart + dashWidth;
+              var subPath = pathMetric.extractPath(dashStart, dashEnd);
+              final p = Paint()
+                ..color = segment.dashArrowColor
+                ..style = PaintingStyle.stroke
+                ..strokeCap = StrokeCap.round
+                ..strokeJoin = StrokeJoin.round
+                ..strokeWidth = 1.5;
+              canvas.drawPath(subPath, p);
+              //
+              dashLength = dashEnd + dashSpace;
+            }
+            final lastTagent1 =
+                pathMetric.getTangentForOffset(segment.length * 0.95);
+            final lastTagent2 = pathMetric.getTangentForOffset(segment.length);
+
+            final p1 = lastTagent1!.position;
+            var p2 = lastTagent2!.position;
+
+            final dX = p2.dx - p1.dx;
+            final dY = p2.dy - p1.dy;
+            final angle = atan2(dY, dX);
+            final arrowSize = 5;
+            final arrowAngle = 25 * pi / 180;
+
+            final path = Path();
+            final paint = Paint()
+              ..color = segment.dashArrowColor
+              ..strokeWidth = 2;
+            path.moveTo(p2.dx - arrowSize * cos(angle - arrowAngle),
+                p2.dy - arrowSize * sin(angle - arrowAngle));
+            path.lineTo(p2.dx, p2.dy);
+            path.lineTo(p2.dx - arrowSize * cos(angle + arrowAngle),
+                p2.dy - arrowSize * sin(angle + arrowAngle));
+            path.close();
+            canvas.drawPath(path, paint);
+
+            var subPath = pathMetric.extractPath(0, drawLength);
+
+            final p = Paint()
+              ..color = segment.animateStrokeColor
+              ..style = PaintingStyle.stroke
+              ..strokeCap = StrokeCap.round
+              ..strokeJoin = StrokeJoin.round
+              ..strokeWidth = pathSegments![0].strokeWidth;
+            canvas.drawPath(subPath, p);
+            var tagent = pathMetric.getTangentForOffset(drawLength);
+            canvas.drawCircle(tagent!.position, segment.handleSize,
+                Paint()..color = segment.handleColor);
+            final scale = calculateScaleFactor(Size.copy(size));
+            var offset = Offset.zero - pathBoundingBox!.topLeft;
+            handlePositionCallback?.call((tagent.position));
+
+            final textSpan = TextSpan(
+              text: '${segment.pathIndex}',
+              style: TextStyle(color: Colors.white, fontSize: 6),
+            );
+
+            final textPainter = TextPainter(
+              text: textSpan,
+              textDirection: TextDirection.ltr,
+              textAlign: TextAlign.center,
+            );
+
+            textPainter.layout();
+            final sizeText = textPainter.size / 2;
+            textPainter.paint(canvas,
+                tagent.position - Offset(sizeText.width, sizeText.height));
+          }
+        }
       }
 
       //No callback etc. needed
