@@ -205,6 +205,7 @@ class PathSegment {
         relativeIndex = 0,
         pathIndex = 0,
         isTutorial = false,
+        tutorialPercent = 0,
         isDoneTutorial = false,
         isShowDashArrow = false,
         dashArrowColor = Colors.grey,
@@ -228,6 +229,8 @@ class PathSegment {
   late double length;
 
   late bool isTutorial;
+
+  late double tutorialPercent;
 
   late bool isDoneTutorial;
 

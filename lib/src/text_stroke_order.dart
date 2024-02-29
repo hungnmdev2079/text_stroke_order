@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:text_stroke_order/src/utils.dart';
 
 import '../text_stroke_order.dart';
 import 'animate_stroke_order.dart';
@@ -177,6 +178,14 @@ class _FollowStrokeOrderState extends State<FollowStrokeOrder>
   late List<PathSegment> listSegment;
   int currentIndex = 0;
 
+  bool canDraw = true;
+
+  Offset? oldHandlePosition;
+
+  double handleAngle = 0;
+
+  Offset? oldPanPosition;
+
   @override
   void initState() {
     super.initState();
@@ -187,14 +196,16 @@ class _FollowStrokeOrderState extends State<FollowStrokeOrder>
   }
 
   setTutorial() {
-    for (var i = 0; i < listSegment.length; i++) {
-      if (i == currentIndex) {
-        listSegment[i].isTutorial = true;
-        listSegment[i].isDoneTutorial = false;
-      } else {
-        listSegment[i].isTutorial = false;
-      }
-    }
+    canDraw = false;
+    listSegment[currentIndex].isTutorial = true;
+    // for (var i = 0; i < listSegment.length; i++) {
+    //   if (i == currentIndex) {
+    //     listSegment[i].isTutorial = true;
+    //     // listSegment[i].isDoneTutorial = false;
+    //   } else {
+    //     listSegment[i].isTutorial = false;
+    //   }
+    // }
     setState(() {});
   }
 
@@ -206,11 +217,9 @@ class _FollowStrokeOrderState extends State<FollowStrokeOrder>
 
   @override
   Widget build(BuildContext context) {
-    // currentIndex = 0;
-    // setTutorial();
     return Container(
       decoration: BoxDecoration(
-          color: widget.backgroundColor ?? Colors.blue,
+          color: widget.backgroundColor,
           border: widget.border,
           borderRadius: BorderRadius.circular(widget.borderRadius ?? 0)),
       child: Padding(
@@ -219,21 +228,55 @@ class _FollowStrokeOrderState extends State<FollowStrokeOrder>
           children: [
             GestureDetector(
               onTapDown: (details) {
-                print(details.localPosition);
+                //print(details.localPosition);
+                canDraw = true;
+                oldPanPosition = details.localPosition;
               },
               onPanStart: (details) {
-                print(details.localPosition);
+                // print('${details.localPosition} hehe');
               },
               onPanUpdate: (details) {
-                print(details.localPosition);
-                print(details.delta.direction);
+                if (!canDraw) {
+                  return;
+                }
+                final angle = Utils.getAngleOffset(
+                    oldPanPosition!, details.localPosition);
+                // print(angle);
+                // print("Angle : $handleAngle");
+                oldPanPosition = details.localPosition;
 
-                final pathMetric =
-                    listSegment[currentIndex].path.computeMetrics().first;
-                final angle = pathMetric
-                    .getTangentForOffset(listSegment[currentIndex].length / 4)!
-                    .angle;
-                print(angle);
+                if ((angle - handleAngle).abs() > 0.25) {
+                  return;
+                }
+
+                setState(() {
+                  var s = listSegment[currentIndex].tutorialPercent;
+                  var l = listSegment[currentIndex].length * s;
+                  l = (l + listSegment[currentIndex].length * 0.05);
+                  var t = l / listSegment[currentIndex].length;
+                  if (t >= 0.9) {
+                    t = 1;
+                    listSegment[currentIndex].isDoneTutorial = true;
+                    listSegment[currentIndex].tutorialPercent = t;
+
+                    if (currentIndex < listSegment.length - 1) {
+                      currentIndex++;
+                      setTutorial();
+                    }
+                  } else {
+                    listSegment[currentIndex].tutorialPercent = t;
+                  }
+                  print(t);
+                });
+
+                // print(details.localPosition);
+                // print(details.delta.direction);
+
+                // final pathMetric =
+                //     listSegment[currentIndex].path.computeMetrics().first;
+                // final angle = pathMetric
+                //     .getTangentForOffset(listSegment[currentIndex].length / 4)!
+                //     .angle;
               },
               child: CustomPaint(
                 painter: PaintedPainter(
@@ -252,6 +295,7 @@ class _FollowStrokeOrderState extends State<FollowStrokeOrder>
                         e.dashArrowColor = widget.animatingStrokeColor!;
                       }
                       e.handleSize = 6;
+
                       return segment;
                     }).toList(),
                     widget.parser.getTextSegments().map((e) {
@@ -263,8 +307,13 @@ class _FollowStrokeOrderState extends State<FollowStrokeOrder>
                     }).toList(),
                     null,
                     [],
-                    null, (handlePosition) {
+                    null, (handlePosition, nextHandlePosition) {
+                  oldHandlePosition = handlePosition;
+                  handleAngle =
+                      Utils.getAngleOffset(handlePosition, nextHandlePosition);
+                  //oldHandlePosition = handlePosition;
                   print('handle position: $handlePosition');
+                  print('next handle position: $nextHandlePosition');
                 },
                     true,
                     DebugOptions(

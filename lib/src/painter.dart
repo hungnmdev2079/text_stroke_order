@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:text_stroke_order/src/utils.dart';
 
 import '../text_stroke_order.dart';
 import 'callback.dart';
@@ -21,13 +22,7 @@ class PaintedPainter extends PathPainter {
       DebugOptions debugOptions)
       : super(animation, pathSegments, textSegments, customDimensions, paints,
             onFinishCallback, scaleToViewport, debugOptions);
-  @override
-  bool? hitTest(Offset position) {
-    print(position);
-    return super.hitTest(position);
-  }
-
-  Function(Offset position)? handlePositionCallback;
+  Function(Offset position, Offset nextPosition)? handlePositionCallback;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -46,95 +41,135 @@ class PaintedPainter extends PathPainter {
         canvas.drawPath(segment.path, paint);
       }
 
-      final indexSegment =
-          pathSegments?.indexWhere((element) => element.isTutorial) ?? -1;
-      if (indexSegment >= 0) {
-        final segment = pathSegments![indexSegment];
+      for (var segment in pathSegments!) {
         if (segment.isTutorial) {
-          if (!segment.isDoneTutorial) {
-            var drawLength = segment.length / 4;
-            var pathMetric = segment.path.computeMetrics().first;
+          var drawLength = segment.length * segment.tutorialPercent;
+          var pathMetric = segment.path.computeMetrics().first;
 
-            double dashLength = 0;
-            double dashWidth = segment.dashWith;
-            double dashSpace = segment.dashSpace;
-            while (dashLength < segment.length - dashSpace - dashWidth) {
-              var dashStart = dashLength;
-              var dashEnd = dashStart + dashWidth;
-              var subPath = pathMetric.extractPath(dashStart, dashEnd);
-              final p = Paint()
-                ..color = segment.dashArrowColor
-                ..style = PaintingStyle.stroke
-                ..strokeCap = StrokeCap.round
-                ..strokeJoin = StrokeJoin.round
-                ..strokeWidth = 1.5;
-              canvas.drawPath(subPath, p);
-              //
-              dashLength = dashEnd + dashSpace;
-            }
-            final lastTagent1 =
-                pathMetric.getTangentForOffset(segment.length * 0.95);
-            final lastTagent2 = pathMetric.getTangentForOffset(segment.length);
+          _drawTutorialLine(pathMetric, drawLength, segment, canvas);
 
-            final p1 = lastTagent1!.position;
-            var p2 = lastTagent2!.position;
-
-            final dX = p2.dx - p1.dx;
-            final dY = p2.dy - p1.dy;
-            final angle = atan2(dY, dX);
-            final arrowSize = 5;
-            final arrowAngle = 25 * pi / 180;
-
-            final path = Path();
-            final paint = Paint()
-              ..color = segment.dashArrowColor
-              ..strokeWidth = 2;
-            path.moveTo(p2.dx - arrowSize * cos(angle - arrowAngle),
-                p2.dy - arrowSize * sin(angle - arrowAngle));
-            path.lineTo(p2.dx, p2.dy);
-            path.lineTo(p2.dx - arrowSize * cos(angle + arrowAngle),
-                p2.dy - arrowSize * sin(angle + arrowAngle));
-            path.close();
-            canvas.drawPath(path, paint);
-
-            var subPath = pathMetric.extractPath(0, drawLength);
-
-            final p = Paint()
-              ..color = segment.animateStrokeColor
-              ..style = PaintingStyle.stroke
-              ..strokeCap = StrokeCap.round
-              ..strokeJoin = StrokeJoin.round
-              ..strokeWidth = pathSegments![0].strokeWidth;
-            canvas.drawPath(subPath, p);
-            var tagent = pathMetric.getTangentForOffset(drawLength);
-            canvas.drawCircle(tagent!.position, segment.handleSize,
-                Paint()..color = segment.handleColor);
-            final scale = calculateScaleFactor(Size.copy(size));
-            var offset = Offset.zero - pathBoundingBox!.topLeft;
-            handlePositionCallback?.call((tagent.position));
-
-            final textSpan = TextSpan(
-              text: '${segment.pathIndex}',
-              style: TextStyle(color: Colors.white, fontSize: 6),
-            );
-
-            final textPainter = TextPainter(
-              text: textSpan,
-              textDirection: TextDirection.ltr,
-              textAlign: TextAlign.center,
-            );
-
-            textPainter.layout();
-            final sizeText = textPainter.size / 2;
-            textPainter.paint(canvas,
-                tagent.position - Offset(sizeText.width, sizeText.height));
-          }
+          _drawHandleCircle(pathMetric, drawLength, canvas, segment, size);
         }
       }
+
+      final indexSegment =
+          pathSegments?.indexWhere((element) => element.isTutorial) ?? -1;
+      if (indexSegment >= 0) {}
 
       //No callback etc. needed
       // super.onFinish(canvas, size);
     }
+  }
+
+  void _drawHandleCircle(ui.PathMetric pathMetric, double drawLength,
+      Canvas canvas, PathSegment segment, Size size) {
+    if (segment.isDoneTutorial) {
+      return;
+    }
+    var tagent = pathMetric.getTangentForOffset(drawLength);
+    canvas.drawCircle(tagent!.position, segment.handleSize,
+        Paint()..color = segment.handleColor);
+    final scale = calculateScaleFactor(Size.copy(size));
+
+    var offset = Offset.zero - pathBoundingBox!.topLeft;
+    var center = Offset((size.width / scale.x - pathBoundingBox!.width) / 2,
+        (size.height / scale.y - pathBoundingBox!.height) / 2);
+
+    final nextDrawLength =
+        (drawLength + segment.length * 0.2).clamp(0, segment.length).toDouble();
+    var nextTagent = pathMetric.getTangentForOffset(nextDrawLength);
+    handlePositionCallback?.call(
+        (tagent.position
+            .translate(offset.dx, offset.dy)
+            .translate(center.dx, center.dy)
+            .scale(scale.x, scale.y)),
+        (nextTagent!.position
+            .translate(offset.dx, offset.dy)
+            .translate(center.dx, center.dy)
+            .scale(scale.x, scale.y)));
+
+    final textSpan = TextSpan(
+      text: '${segment.pathIndex}',
+      style: TextStyle(color: Colors.white, fontSize: 6),
+    );
+
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
+
+    textPainter.layout();
+    final sizeText = textPainter.size / 2;
+    textPainter.paint(
+        canvas, tagent.position - Offset(sizeText.width, sizeText.height));
+  }
+
+  void _drawTutorialLine(ui.PathMetric pathMetric, double drawLength,
+      PathSegment segment, Canvas canvas) {
+    var paint = (paints.isNotEmpty)
+        ? paints[segment.pathIndex]
+        : (Paint()
+          ..color = segment.color
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..strokeWidth = segment.strokeWidth);
+    canvas.drawPath(segment.path, paint);
+
+    _drawDashArrowTutorial(segment, pathMetric, canvas);
+
+    var subPath = pathMetric.extractPath(0, drawLength);
+
+    final p = Paint()
+      ..color = segment.animateStrokeColor
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..strokeWidth = segment.strokeWidth;
+    canvas.drawPath(subPath, p);
+  }
+
+  void _drawDashArrowTutorial(
+      PathSegment segment, ui.PathMetric pathMetric, Canvas canvas) {
+    double dashLength = 0;
+    double dashWidth = segment.dashWith;
+    double dashSpace = segment.dashSpace;
+    while (dashLength < segment.length - dashSpace - dashWidth) {
+      var dashStart = dashLength;
+      var dashEnd = dashStart + dashWidth;
+      var subPath = pathMetric.extractPath(dashStart, dashEnd);
+      final p = Paint()
+        ..color = segment.dashArrowColor
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..strokeWidth = 1.5;
+      canvas.drawPath(subPath, p);
+      //
+      dashLength = dashEnd + dashSpace;
+    }
+    final lastTagent1 = pathMetric.getTangentForOffset(segment.length * 0.95);
+    final lastTagent2 = pathMetric.getTangentForOffset(segment.length);
+
+    final p1 = lastTagent1!.position;
+    var p2 = lastTagent2!.position;
+
+    final angle = Utils.getAngleOffset(p1, p2);
+    final arrowSize = 5;
+    final arrowAngle = 25 * pi / 180;
+
+    final path = Path();
+    final paint = Paint()
+      ..color = segment.dashArrowColor
+      ..strokeWidth = 2;
+    path.moveTo(p2.dx - arrowSize * cos(angle - arrowAngle),
+        p2.dy - arrowSize * sin(angle - arrowAngle));
+    path.lineTo(p2.dx, p2.dy);
+    path.lineTo(p2.dx - arrowSize * cos(angle + arrowAngle),
+        p2.dy - arrowSize * sin(angle + arrowAngle));
+    path.close();
+    canvas.drawPath(path, paint);
   }
 }
 
