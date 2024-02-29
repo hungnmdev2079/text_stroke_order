@@ -18,17 +18,20 @@ class PaintedPainter extends PathPainter {
       List<Paint> paints,
       PaintedSegmentCallback? onFinishCallback,
       this.handlePositionCallback,
+      this.getListCurrentOffsets,
       bool scaleToViewport,
       DebugOptions debugOptions)
       : super(animation, pathSegments, textSegments, customDimensions, paints,
             onFinishCallback, scaleToViewport, debugOptions);
-  Function(Offset position, Offset nextPosition)? handlePositionCallback;
+  Function(Offset position)? handlePositionCallback;
+  Function(List<Offset>)? getListCurrentOffsets;
 
   @override
   void paint(Canvas canvas, Size size) {
     canvas = super.paintOrDebug(canvas, size);
     if (canPaint) {
       //pathSegments for AllAtOncePainter are always in the order of PathOrders.original
+
       for (var segment in pathSegments!) {
         var paint = (paints.isNotEmpty)
             ? paints[segment.pathIndex]
@@ -42,7 +45,24 @@ class PaintedPainter extends PathPainter {
       }
 
       for (var segment in pathSegments!) {
-        if (segment.isTutorial) {
+        if (segment.isSkipTutorial) {
+          var pathMetric = segment.path.computeMetrics().first;
+          _drawTutorialLine(pathMetric, segment.length, segment, canvas);
+        } else if (segment.isTutorial) {
+          final scale = calculateScaleFactor(Size.copy(size));
+
+          var offset = Offset.zero - pathBoundingBox!.topLeft;
+          var center = Offset(
+              (size.width / scale.x - pathBoundingBox!.width) / 2,
+              (size.height / scale.y - pathBoundingBox!.height) / 2);
+
+          final offsets = segment.getOffsets
+              .map((e) => e
+                  .translate(offset.dx, offset.dy)
+                  .translate(center.dx, center.dy)
+                  .scale(scale.x, scale.y))
+              .toList();
+          getListCurrentOffsets?.call(offsets);
           var drawLength = segment.length * segment.tutorialPercent;
           var pathMetric = segment.path.computeMetrics().first;
 
@@ -51,10 +71,6 @@ class PaintedPainter extends PathPainter {
           _drawHandleCircle(pathMetric, drawLength, canvas, segment, size);
         }
       }
-
-      final indexSegment =
-          pathSegments?.indexWhere((element) => element.isTutorial) ?? -1;
-      if (indexSegment >= 0) {}
 
       //No callback etc. needed
       // super.onFinish(canvas, size);
@@ -75,18 +91,10 @@ class PaintedPainter extends PathPainter {
     var center = Offset((size.width / scale.x - pathBoundingBox!.width) / 2,
         (size.height / scale.y - pathBoundingBox!.height) / 2);
 
-    final nextDrawLength =
-        (drawLength + segment.length * 0.2).clamp(0, segment.length).toDouble();
-    var nextTagent = pathMetric.getTangentForOffset(nextDrawLength);
-    handlePositionCallback?.call(
-        (tagent.position
-            .translate(offset.dx, offset.dy)
-            .translate(center.dx, center.dy)
-            .scale(scale.x, scale.y)),
-        (nextTagent!.position
-            .translate(offset.dx, offset.dy)
-            .translate(center.dx, center.dy)
-            .scale(scale.x, scale.y)));
+    handlePositionCallback?.call((tagent.position
+        .translate(offset.dx, offset.dy)
+        .translate(center.dx, center.dy)
+        .scale(scale.x, scale.y)));
 
     final textSpan = TextSpan(
       text: '${segment.pathIndex}',

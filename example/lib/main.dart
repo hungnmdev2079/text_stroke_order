@@ -42,10 +42,18 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 </svg>
 """;
 
+  late TextStrokeOrderController controller = TextStrokeOrderController(
+      svgProvider: SvgProvider.network(
+          'https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/05270.svg'),
+      vsync: this,
+      duration: const Duration(milliseconds: 600));
+
   @override
   void initState() {
     super.initState();
   }
+
+  Color strokeColor = Colors.orange;
 
   @override
   Widget build(BuildContext context) {
@@ -55,22 +63,34 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: TextStrokeOrder(
-            type: TextStrokeOrderType.followTutorial,
-            width: 300,
-            height: 300,
-            strokeColor: Colors.grey.shade300,
-            animatingStrokeColor: Colors.orange,
-            strokeWidth: 8,
-            pading: 8,
-            dashColor: const Color.fromARGB(255, 3, 3, 3).withOpacity(0.2),
-            isShowNumber: false,
-            numberStyle: const TextStyle(
-                color: Colors.grey, fontSize: 6, fontWeight: FontWeight.bold),
-            provider: SvgProvider.network(
-                'https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/05270.svg'),
-            animationDuration: Duration(milliseconds: 600),
-            loadingBuilder: (context) => SizedBox(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                  onPressed: () {
+                    controller.reset();
+                  },
+                  child: Text("Reset")),
+              TextStrokeOrder(
+                controller: controller,
+                type: TextStrokeOrderType.followTutorial,
+                width: 300,
+                height: 300,
+                strokeColor: Colors.grey.shade300,
+                animatingStrokeColor: Colors.orange,
+                strokeWidth: 8,
+                pading: 8,
+                dashColor: const Color.fromARGB(255, 3, 3, 3).withOpacity(0.2),
+                isShowNumber: false,
+                numberStyle: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 6,
+                    fontWeight: FontWeight.bold),
+                loadingBuilder: (context) => SizedBox(),
+                finishStrokeColor: Colors.green,
+                onFinish: () {},
+              ),
+            ],
           ),
         ),
       ),

@@ -207,6 +207,7 @@ class PathSegment {
         isTutorial = false,
         tutorialPercent = 0,
         isDoneTutorial = false,
+        isSkipTutorial = false,
         isShowDashArrow = false,
         dashArrowColor = Colors.grey,
         dashSpace = 3,
@@ -234,6 +235,8 @@ class PathSegment {
 
   late bool isDoneTutorial;
 
+  late bool isSkipTutorial;
+
   late bool isShowDashArrow;
 
   late Color dashArrowColor;
@@ -254,6 +257,18 @@ class PathSegment {
 
   /// Denotes relative index to  firstSegmentOfPathIndex
   int relativeIndex;
+
+  List<Offset> get getOffsets {
+    final List<Offset> offsets = [];
+    final segments = path.computeMetrics().first;
+    for (var i = 0; i < segments.length; i += 1) {
+      final offset = segments.getTangentForOffset(i.toDouble())!.position;
+      offsets.add(offset);
+    }
+    final offset = segments.getTangentForOffset(segments.length)!.position;
+    offsets.add(offset);
+    return offsets;
+  }
 
   /// If stroke, how to end
 // StrokeCap cap;

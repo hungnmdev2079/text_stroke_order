@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:text_stroke_order/src/text_stroke_order_controller.dart';
 
 import 'debug.dart';
 import 'painter.dart';
-import 'parser.dart';
 
 class AnimationStrokeOrder extends StatefulWidget {
   const AnimationStrokeOrder({
     super.key,
-    required this.parser,
+    required this.controller,
     this.backgroundColor,
     this.border,
     this.borderRadius,
@@ -15,7 +15,6 @@ class AnimationStrokeOrder extends StatefulWidget {
     required this.width,
     required this.height,
     this.animation,
-    required this.duration,
     this.strokeWidth,
     this.strokeColor,
     this.animatingStrokeColor,
@@ -25,7 +24,7 @@ class AnimationStrokeOrder extends StatefulWidget {
     this.numberStyle,
   });
 
-  final SvgParser parser;
+  final TextStrokeOrderController controller;
   final Color? backgroundColor;
   final Border? border;
   final double? borderRadius;
@@ -33,7 +32,6 @@ class AnimationStrokeOrder extends StatefulWidget {
   final double width;
   final double height;
   final AnimationController? animation;
-  final Duration duration;
   final double? strokeWidth;
   final Color? strokeColor;
   final Color? animatingStrokeColor;
@@ -46,40 +44,28 @@ class AnimationStrokeOrder extends StatefulWidget {
   State<AnimationStrokeOrder> createState() => _AnimationStrokeOrderState();
 }
 
-class _AnimationStrokeOrderState extends State<AnimationStrokeOrder>
-    with SingleTickerProviderStateMixin {
-  late AnimationController animation;
-
+class _AnimationStrokeOrderState extends State<AnimationStrokeOrder> {
   @override
   void initState() {
     super.initState();
-    animation = widget.animation ??
-        AnimationController(
-            vsync: this,
-            duration: widget.duration * widget.parser.getPathSegments().length);
+    widget.controller.animationController.duration =
+        (widget.controller.duration ?? Duration(seconds: 1)) *
+            widget.controller.parser!.getPathSegments().length;
 
-    if (widget.animation == null) {
-      animation.forward();
-    }
+    widget.controller.animationController.forward();
   }
 
   @override
   void reassemble() {
     super.reassemble();
-    animation = widget.animation ??
-        AnimationController(
-            vsync: this,
-            duration: widget.duration * widget.parser.getPathSegments().length);
-
-    if (widget.animation == null) {
-      animation.forward();
-    }
+    widget.controller.animationController.reset();
+    widget.controller.animationController.forward();
   }
 
   @override
   void dispose() {
     super.dispose();
-    animation.dispose();
+    widget.controller.animationController.dispose();
   }
 
   @override
@@ -92,12 +78,12 @@ class _AnimationStrokeOrderState extends State<AnimationStrokeOrder>
       child: Padding(
         padding: EdgeInsets.all(widget.pading),
         child: AnimatedBuilder(
-          animation: animation,
+          animation: widget.controller.animationController,
           builder: (context, child) {
             return CustomPaint(
               painter: OneByOnePainter(
-                  animation,
-                  widget.parser.getPathSegments().map((e) {
+                  widget.controller.animationController,
+                  widget.controller.parser!.getPathSegments().map((e) {
                     final segment = e;
                     if (widget.strokeColor != null) {
                       e.color = widget.strokeColor!;
@@ -110,7 +96,7 @@ class _AnimationStrokeOrderState extends State<AnimationStrokeOrder>
                     }
                     return segment;
                   }).toList(),
-                  widget.parser.getTextSegments().map((e) {
+                  widget.controller.parser!.getTextSegments().map((e) {
                     final segment = e;
                     if (widget.numberStyle != null) {
                       segment.textStyle = widget.numberStyle!;
