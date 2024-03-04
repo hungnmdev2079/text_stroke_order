@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import '../text_stroke_order.dart';
 import 'animate_stroke_order.dart';
-import 'follow_stroke_order.dart';
+import 'sequential_stroke_order.dart';
+import 'sequential_stroke_with_free_draw.dart';
 
 class TextStrokeOrder extends StatefulWidget {
   const TextStrokeOrder({
     super.key,
     required this.controller,
-    this.type = TextStrokeOrderType.animation,
+    this.type = TextStrokeOrderType.autoAnimation,
     this.animation,
     this.loadingBuilder,
     this.width = 300,
@@ -25,6 +26,13 @@ class TextStrokeOrder extends StatefulWidget {
     this.numberStyle,
     this.onFinish,
     this.finishStrokeColor,
+    this.randomSkipTutorial = false,
+    this.onEndStroke,
+    this.onEndStrokeCheck,
+    this.autoAnimate = true,
+    this.handWriteSetting = const HandWriteSetting(),
+    this.tutorialPathSetting = const TutorialPathSetting(),
+    this.hintSetting = const HintSetting(),
   });
 
   final TextStrokeOrderController controller;
@@ -63,7 +71,20 @@ class TextStrokeOrder extends StatefulWidget {
 
   final Function()? onFinish;
 
+  final Function()? onEndStroke;
+
+  final Function(bool isCorrect)? onEndStrokeCheck;
+
   final Color? finishStrokeColor;
+
+  final bool randomSkipTutorial;
+
+  final HandWriteSetting handWriteSetting;
+
+  final TutorialPathSetting tutorialPathSetting;
+
+  final HintSetting hintSetting;
+  final bool autoAnimate;
 
   @override
   State<TextStrokeOrder> createState() => _TextStrokeOrderState();
@@ -88,13 +109,12 @@ class _TextStrokeOrderState extends State<TextStrokeOrder> {
 
   Widget _buildBody(SvgParser parser) {
     switch (widget.type) {
-      case TextStrokeOrderType.animation:
+      case TextStrokeOrderType.autoAnimation:
         return AnimationStrokeOrder(
           controller: widget.controller,
           height: widget.height,
           pading: widget.pading,
           width: widget.width,
-          animation: widget.animation,
           backgroundColor: widget.backgroundColor,
           border: widget.border,
           borderRadius: widget.borderRadius,
@@ -105,9 +125,10 @@ class _TextStrokeOrderState extends State<TextStrokeOrder> {
           dashColor: widget.dashColor,
           isShowNumber: widget.isShowNumber,
           numberStyle: widget.numberStyle,
+          autoAnimate: widget.autoAnimate,
         );
-      case TextStrokeOrderType.followTutorial:
-        return FollowStrokeOrder(
+      case TextStrokeOrderType.sequentialStroke:
+        return SequentialStrokeOrder(
           controller: widget.controller,
           height: widget.height,
           pading: widget.pading,
@@ -115,15 +136,36 @@ class _TextStrokeOrderState extends State<TextStrokeOrder> {
           backgroundColor: widget.backgroundColor,
           border: widget.border,
           borderRadius: widget.borderRadius,
-          strokeWidth: widget.strokeWidth,
           strokeColor: widget.strokeColor,
-          animatingStrokeColor: widget.animatingStrokeColor,
           showDash: widget.showDash,
           dashColor: widget.dashColor,
           isShowNumber: widget.isShowNumber,
           numberStyle: widget.numberStyle,
           onEnd: widget.onFinish,
-          finishColor: widget.finishStrokeColor,
+          randomSkipTutorial: widget.randomSkipTutorial,
+          onEndStroke: widget.onEndStroke,
+          tutorialPathSetting: widget.tutorialPathSetting,
+        );
+      case TextStrokeOrderType.sequentialStrokeWithFreeDraw:
+        return SequentialStrokeWithFreeDraw(
+          controller: widget.controller,
+          pading: widget.pading,
+          width: widget.width,
+          height: widget.height,
+          isShowNumber: widget.isShowNumber,
+          randomSkipTutorial: widget.randomSkipTutorial,
+          backgroundColor: widget.backgroundColor,
+          border: widget.border,
+          borderRadius: widget.borderRadius,
+          showDash: widget.showDash,
+          dashColor: widget.dashColor,
+          numberStyle: widget.numberStyle,
+          onEnd: widget.onFinish,
+          onEndStroke: widget.onEndStroke,
+          onEndStrokeCheck: widget.onEndStrokeCheck,
+          handWriteSetting: widget.handWriteSetting,
+          tutorialPathSetting: widget.tutorialPathSetting,
+          hintSetting: widget.hintSetting,
         );
       default:
         return const SizedBox();

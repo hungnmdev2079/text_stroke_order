@@ -43,10 +43,12 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 """;
 
   late TextStrokeOrderController controller = TextStrokeOrderController(
+      // svgProvider: SvgProvider.string(svg),
+
       svgProvider: SvgProvider.network(
           'https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/05270.svg'),
       vsync: this,
-      duration: const Duration(milliseconds: 600));
+      duration: const Duration(milliseconds: 800));
 
   @override
   void initState() {
@@ -73,7 +75,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                   child: Text("Reset")),
               TextStrokeOrder(
                 controller: controller,
-                type: TextStrokeOrderType.followTutorial,
+                type: TextStrokeOrderType.sequentialStroke,
                 width: 300,
                 height: 300,
                 strokeColor: Colors.grey.shade300,
@@ -88,7 +90,22 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                     fontWeight: FontWeight.bold),
                 loadingBuilder: (context) => SizedBox(),
                 finishStrokeColor: Colors.green,
-                onFinish: () {},
+                onFinish: () {
+                  print("FINISSSSHHSHSHSHSHS");
+                },
+                onEndStroke: () {
+                  print("end Stroke");
+                },
+                onEndStrokeCheck: (isCorrect) {
+                  print("END STROKE => $isCorrect");
+                },
+                randomSkipTutorial: true,
+                handWriteSetting: HandWriteSetting(color: Colors.black),
+                hintSetting:
+                    HintSetting(color: Colors.grey.shade300, strokeWidth: 8),
+                tutorialPathSetting: TutorialPathSetting(
+                    color: Colors.grey.shade300,
+                    handleCircleSetting: HandleCircleSetting.text()),
               ),
             ],
           ),

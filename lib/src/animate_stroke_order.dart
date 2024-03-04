@@ -1,28 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:text_stroke_order/src/text_stroke_order_controller.dart';
-
-import 'debug.dart';
-import 'painter.dart';
+import 'package:text_stroke_order/text_stroke_order.dart';
 
 class AnimationStrokeOrder extends StatefulWidget {
-  const AnimationStrokeOrder({
-    super.key,
-    required this.controller,
-    this.backgroundColor,
-    this.border,
-    this.borderRadius,
-    required this.pading,
-    required this.width,
-    required this.height,
-    this.animation,
-    this.strokeWidth,
-    this.strokeColor,
-    this.animatingStrokeColor,
-    this.showDash,
-    this.dashColor,
-    this.isShowNumber = true,
-    this.numberStyle,
-  });
+  const AnimationStrokeOrder(
+      {super.key,
+      required this.controller,
+      this.backgroundColor,
+      this.border,
+      this.borderRadius,
+      required this.pading,
+      required this.width,
+      required this.height,
+      this.strokeWidth,
+      this.strokeColor,
+      this.animatingStrokeColor,
+      this.showDash,
+      this.dashColor,
+      this.isShowNumber = true,
+      this.numberStyle,
+      this.autoAnimate = true});
 
   final TextStrokeOrderController controller;
   final Color? backgroundColor;
@@ -31,7 +27,6 @@ class AnimationStrokeOrder extends StatefulWidget {
   final double pading;
   final double width;
   final double height;
-  final AnimationController? animation;
   final double? strokeWidth;
   final Color? strokeColor;
   final Color? animatingStrokeColor;
@@ -39,6 +34,7 @@ class AnimationStrokeOrder extends StatefulWidget {
   final Color? dashColor;
   final bool isShowNumber;
   final TextStyle? numberStyle;
+  final bool autoAnimate;
 
   @override
   State<AnimationStrokeOrder> createState() => _AnimationStrokeOrderState();
@@ -48,24 +44,18 @@ class _AnimationStrokeOrderState extends State<AnimationStrokeOrder> {
   @override
   void initState() {
     super.initState();
-    widget.controller.animationController.duration =
-        (widget.controller.duration ?? Duration(seconds: 1)) *
-            widget.controller.parser!.getPathSegments().length;
-
-    widget.controller.animationController.forward();
+    widget.controller.initialAnimate(widget.autoAnimate);
   }
 
   @override
   void reassemble() {
     super.reassemble();
-    widget.controller.animationController.reset();
-    widget.controller.animationController.forward();
+    widget.controller.initialAnimate(widget.autoAnimate);
   }
 
   @override
   void dispose() {
     super.dispose();
-    widget.controller.animationController.dispose();
   }
 
   @override
