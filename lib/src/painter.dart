@@ -161,14 +161,15 @@ class PaintedPainter extends PathPainter {
 
   void _drawTutorialLine(ui.PathMetric pathMetric, double drawLength,
       PathSegment segment, Canvas canvas) {
-    if (!tutorialPathSetting.enable) return;
-    var paint = (Paint()
-      ..color = tutorialPathSetting.color
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..strokeWidth = tutorialPathSetting.strokeWidth);
-    canvas.drawPath(segment.path, paint);
+    if (tutorialPathSetting.enable) {
+      var paint = (Paint()
+        ..color = tutorialPathSetting.color
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..strokeWidth = tutorialPathSetting.strokeWidth);
+      canvas.drawPath(segment.path, paint);
+    }
 
     _drawDashArrowTutorial(segment, pathMetric, canvas);
 
@@ -187,6 +188,10 @@ class PaintedPainter extends PathPainter {
   void _drawDashArrowTutorial(
       PathSegment segment, ui.PathMetric pathMetric, Canvas canvas) {
     if (!tutorialPathSetting.arrowDashEnable) return;
+
+    final length =
+        segment.length * tutorialPathSetting.arrowDashLineSetting.percent;
+
     double dashLength = 0;
     double dashWidth = tutorialPathSetting.arrowDashLineSetting.length;
     double dashSpace = tutorialPathSetting.arrowDashLineSetting.spacing;
@@ -196,15 +201,15 @@ class PaintedPainter extends PathPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..strokeWidth = tutorialPathSetting.arrowDashLineSetting.strokeWidth;
-    while (dashLength < segment.length - dashSpace - dashWidth) {
+    while (dashLength < length - dashSpace - dashWidth) {
       var dashStart = dashLength;
       var dashEnd = dashStart + dashWidth;
       var subPath = pathMetric.extractPath(dashStart, dashEnd);
       canvas.drawPath(subPath, p);
       dashLength = dashEnd + dashSpace;
     }
-    final lastTagent1 = pathMetric.getTangentForOffset(segment.length * 0.95);
-    final lastTagent2 = pathMetric.getTangentForOffset(segment.length);
+    final lastTagent1 = pathMetric.getTangentForOffset(length * 0.95);
+    final lastTagent2 = pathMetric.getTangentForOffset(length);
 
     final p1 = lastTagent1!.position;
     var p2 = lastTagent2!.position;

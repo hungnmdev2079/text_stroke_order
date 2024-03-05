@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class ArrowDashLineSetting {
   final Color color;
+  final double percent;
   final double strokeWidth;
   final double length;
   final double spacing;
@@ -11,6 +12,7 @@ class ArrowDashLineSetting {
   const ArrowDashLineSetting(
       {this.color = Colors.orange,
       this.strokeWidth = 1.5,
+      this.percent = 1,
       this.length = 3,
       this.spacing = 3,
       this.arrowSize = 5,
