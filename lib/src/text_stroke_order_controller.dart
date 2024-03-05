@@ -50,8 +50,10 @@ class TextStrokeOrderController extends ChangeNotifier {
 
   TextStrokeOrderType? currentType;
 
-  InternalEvent go() {
-    return InternalEvent();
+  @override
+  void dispose() {
+    super.dispose();
+    animationController.dispose();
   }
 
   initialAnimate(bool autoAnimate) {
@@ -389,7 +391,3 @@ class TextStrokeOrderController extends ChangeNotifier {
     return index;
   }
 }
-
-class InternalEvent {}
-
-class VisibleEvent {}
