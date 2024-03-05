@@ -144,18 +144,29 @@ class TextStrokeOrder extends StatefulWidget {
 class _TextStrokeOrderState extends State<TextStrokeOrder> {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<SvgParser?>(
-      future: widget.controller.resolve,
-      builder: (context, snapshot) {
-        final parser = snapshot.data;
-        if (parser != null && widget.controller.parser != null) {
-          return _buildBody(parser);
-        } else {
-          return widget.loadingBuilder?.call(context) ??
-              const Center(child: CircularProgressIndicator());
-        }
-      },
-    );
+    return CustomPaint(
+        painter: DashViewPortPainter(dashSetting: widget.viewPortDashSetting),
+        child: Container(
+          padding: widget.padding,
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+              color: widget.backgroundColor,
+              border: widget.border,
+              borderRadius: BorderRadius.circular(widget.borderRadius ?? 0)),
+          child: FutureBuilder<SvgParser?>(
+            future: widget.controller.resolve,
+            builder: (context, snapshot) {
+              final parser = snapshot.data;
+              if (parser != null && widget.controller.parser != null) {
+                return _buildBody(parser);
+              } else {
+                return widget.loadingBuilder?.call(context) ??
+                    const Center(child: CircularProgressIndicator());
+              }
+            },
+          ),
+        ));
   }
 
   Widget _buildBody(SvgParser parser) {

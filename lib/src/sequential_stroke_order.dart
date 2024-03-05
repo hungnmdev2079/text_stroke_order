@@ -87,60 +87,47 @@ class _SequentialStrokeOrderState extends State<SequentialStrokeOrder> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: DashViewPortPainter(dashSetting: widget.dashSetting),
-      child: Container(
-        padding: widget.padding,
-        width: widget.width,
-        height: widget.height,
-        decoration: BoxDecoration(
-            color: widget.backgroundColor,
-            border: widget.border,
-            borderRadius: BorderRadius.circular(widget.borderRadius ?? 0)),
-        child: GestureDetector(
-          onTapDown: (details) {
-            widget.controller.startDrawCheck(details.localPosition);
-          },
-          onPanStart: (details) {
-            if (widget.controller.canDraw = true) {
-              return;
-            }
-            widget.controller.startDrawCheck(details.localPosition);
-          },
-          onPanCancel: () {
-            widget.controller.endDrawCheck();
-          },
-          onPanEnd: (details) {
-            widget.controller.endDrawCheck();
-          },
-          onPanUpdate: (details) {
-            widget.controller.updateDrawTutorial(details.localPosition);
-          },
-          child: CustomPaint(
-            painter: PaintedPainter(
-              animation: widget.controller.animationController,
-              pathSegments: widget.controller.listPathSegments,
-              isFinish: drawState == DrawState.finish,
-              textSegments: widget.isShowNumber
-                  ? widget.controller.parser!.getTextSegments().map((e) {
-                      final segment = e;
-                      if (widget.numberStyle != null) {
-                        segment.textStyle = widget.numberStyle!;
-                      }
-                      return segment;
-                    }).toList()
-                  : [],
-              hintSetting:
-                  HintSetting(color: widget.strokeColor ?? Colors.grey),
-              tutorialPathSetting: widget.tutorialPathSetting,
-              handlePositionCallback: widget.controller.updateHandlePosision,
-              getListCurrentOffsets: widget.controller.updateListCurrentOffsets,
-            ),
-            child: SizedBox(
-              width: widget.width - (widget.padding?.horizontal ?? 0),
-              height: widget.height - (widget.padding?.vertical ?? 0),
-            ),
-          ),
+    return GestureDetector(
+      onTapDown: (details) {
+        widget.controller.startDrawCheck(details.localPosition);
+      },
+      onPanStart: (details) {
+        if (widget.controller.canDraw = true) {
+          return;
+        }
+        widget.controller.startDrawCheck(details.localPosition);
+      },
+      onPanCancel: () {
+        widget.controller.endDrawCheck();
+      },
+      onPanEnd: (details) {
+        widget.controller.endDrawCheck();
+      },
+      onPanUpdate: (details) {
+        widget.controller.updateDrawTutorial(details.localPosition);
+      },
+      child: CustomPaint(
+        painter: PaintedPainter(
+          animation: widget.controller.animationController,
+          pathSegments: widget.controller.listPathSegments,
+          isFinish: drawState == DrawState.finish,
+          textSegments: widget.isShowNumber
+              ? widget.controller.parser!.getTextSegments().map((e) {
+                  final segment = e;
+                  if (widget.numberStyle != null) {
+                    segment.textStyle = widget.numberStyle!;
+                  }
+                  return segment;
+                }).toList()
+              : [],
+          hintSetting: HintSetting(color: widget.strokeColor ?? Colors.grey),
+          tutorialPathSetting: widget.tutorialPathSetting,
+          handlePositionCallback: widget.controller.updateHandlePosision,
+          getListCurrentOffsets: widget.controller.updateListCurrentOffsets,
+        ),
+        child: SizedBox(
+          width: widget.width - (widget.padding?.horizontal ?? 0),
+          height: widget.height - (widget.padding?.vertical ?? 0),
         ),
       ),
     );

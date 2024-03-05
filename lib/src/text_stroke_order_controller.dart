@@ -32,8 +32,6 @@ class TextStrokeOrderController extends ChangeNotifier {
 
   SvgParser? _parser;
 
-  Color? animatingStrokeColor;
-
   SvgParser? get parser => _parser;
 
   Future<SvgParser> get resolve async {
@@ -49,6 +47,12 @@ class TextStrokeOrderController extends ChangeNotifier {
   List<TextSegment> get listTextSegments => parser?.getTextSegments() ?? [];
 
   AnimationController animationController;
+
+  TextStrokeOrderType? currentType;
+
+  InternalEvent go() {
+    return InternalEvent();
+  }
 
   initialAnimate(bool autoAnimate) {
     final d = duration ?? const Duration(seconds: 1);
@@ -90,10 +94,6 @@ class TextStrokeOrderController extends ChangeNotifier {
     return completer.future;
   }
 
-  updateAnimateStrokeColor(Color? color) {
-    animatingStrokeColor = color;
-  }
-
   reset() {
     _resetStateDraw();
     currentIndex =
@@ -106,8 +106,6 @@ class TextStrokeOrderController extends ChangeNotifier {
         listPathSegments[i].isTutorial = false;
       }
       listPathSegments[i].tutorialPercent = 0;
-      listPathSegments[i].animateStrokeColor =
-          animatingStrokeColor ?? Colors.grey;
     }
     notifyListeners();
   }
@@ -391,3 +389,7 @@ class TextStrokeOrderController extends ChangeNotifier {
     return index;
   }
 }
+
+class InternalEvent {}
+
+class VisibleEvent {}

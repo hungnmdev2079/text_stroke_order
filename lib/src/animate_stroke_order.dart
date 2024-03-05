@@ -71,54 +71,41 @@ class _AnimationStrokeOrderState extends State<AnimationStrokeOrder> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: DashViewPortPainter(dashSetting: widget.dashSetting),
-      child: Container(
-        padding: widget.padding,
-        width: widget.width,
-        height: widget.height,
-        decoration: BoxDecoration(
-            color: widget.backgroundColor,
-            border: widget.border,
-            borderRadius: BorderRadius.circular(widget.borderRadius ?? 0)),
-        child: AnimatedBuilder(
-          animation: widget.controller.animationController,
-          builder: (context, child) {
-            return CustomPaint(
-              painter: OneByOnePainter(
-                animation: widget.controller.animationController,
-                pathSegments:
-                    widget.controller.parser!.getPathSegments().map((e) {
-                  final segment = e;
-                  if (widget.strokeColor != null) {
-                    e.color = widget.strokeColor!;
-                  }
-                  if (widget.strokeWidth != null) {
-                    e.strokeWidth = widget.strokeWidth!;
-                  }
-                  if (widget.animatingStrokeColor != null) {
-                    e.animateStrokeColor = widget.animatingStrokeColor!;
-                  }
-                  return segment;
-                }).toList(),
-                textSegments: widget.isShowNumber
-                    ? widget.controller.parser!.getTextSegments().map((e) {
-                        final segment = e;
-                        if (widget.numberStyle != null) {
-                          segment.textStyle = widget.numberStyle!;
-                        }
-                        return segment;
-                      }).toList()
-                    : [],
-              ),
-              child: SizedBox(
-                width: widget.width - (widget.padding?.horizontal ?? 0),
-                height: widget.height - (widget.padding?.vertical ?? 0),
-              ),
-            );
-          },
-        ),
-      ),
+    return AnimatedBuilder(
+      animation: widget.controller.animationController,
+      builder: (context, child) {
+        return CustomPaint(
+          painter: OneByOnePainter(
+            animation: widget.controller.animationController,
+            pathSegments: widget.controller.parser!.getPathSegments().map((e) {
+              final segment = e;
+              if (widget.strokeColor != null) {
+                e.color = widget.strokeColor!;
+              }
+              if (widget.strokeWidth != null) {
+                e.strokeWidth = widget.strokeWidth!;
+              }
+              if (widget.animatingStrokeColor != null) {
+                e.animateStrokeColor = widget.animatingStrokeColor!;
+              }
+              return segment;
+            }).toList(),
+            textSegments: widget.isShowNumber
+                ? widget.controller.parser!.getTextSegments().map((e) {
+                    final segment = e;
+                    if (widget.numberStyle != null) {
+                      segment.textStyle = widget.numberStyle!;
+                    }
+                    return segment;
+                  }).toList()
+                : [],
+          ),
+          child: SizedBox(
+            width: widget.width - (widget.padding?.horizontal ?? 0),
+            height: widget.height - (widget.padding?.vertical ?? 0),
+          ),
+        );
+      },
     );
   }
 }
