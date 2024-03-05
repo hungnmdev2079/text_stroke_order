@@ -42,12 +42,12 @@ class SvgProvider {
 }
 
 class _SvgCacheManager {
-  static const key = 'svgCacheManager';
+  static const key = 'svgCache';
   static CacheManager instance = CacheManager(
     Config(
       key,
       stalePeriod: const Duration(days: 7),
-      maxNrOfCacheObjects: 20,
+      maxNrOfCacheObjects: 200,
       repo: JsonCacheInfoRepository(databaseName: key),
       fileSystem: IOFileSystem(key),
       fileService: HttpFileService(),
