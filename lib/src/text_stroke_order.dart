@@ -206,6 +206,7 @@ class _TextStrokeOrderState extends State<TextStrokeOrder> {
           onEndStroke: widget.onEndStroke,
           tutorialPathSetting: widget.tutorialPathSetting,
           dashSetting: widget.viewPortDashSetting,
+          hintSetting: widget.hintSetting,
         );
       case TextStrokeOrderType.sequentialStrokeWithFreeDraw:
         return SequentialStrokeWithFreeDraw(

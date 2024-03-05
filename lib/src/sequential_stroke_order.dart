@@ -22,6 +22,7 @@ class SequentialStrokeOrder extends StatefulWidget {
     this.onEndStroke,
     required this.tutorialPathSetting,
     required this.dashSetting,
+    required this.hintSetting,
   });
 
   final TextStrokeOrderController controller;
@@ -39,6 +40,7 @@ class SequentialStrokeOrder extends StatefulWidget {
   final bool randomSkipTutorial;
   final TutorialPathSetting tutorialPathSetting;
   final ViewPortDashSetting dashSetting;
+  final HintSetting hintSetting;
 
   @override
   State<SequentialStrokeOrder> createState() => _SequentialStrokeOrderState();
@@ -120,7 +122,7 @@ class _SequentialStrokeOrderState extends State<SequentialStrokeOrder> {
                   return segment;
                 }).toList()
               : [],
-          hintSetting: HintSetting(color: widget.strokeColor ?? Colors.grey),
+          hintSetting: widget.hintSetting,
           tutorialPathSetting: widget.tutorialPathSetting,
           handlePositionCallback: widget.controller.updateHandlePosision,
           getListCurrentOffsets: widget.controller.updateListCurrentOffsets,
