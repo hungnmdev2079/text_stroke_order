@@ -73,39 +73,43 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                     controller.reset();
                   },
                   child: Text("Reset")),
-              TextStrokeOrder(
+              TextStrokeOrder.sequentialStroke(
                 controller: controller,
-                type: TextStrokeOrderType.sequentialStroke,
+                //type: TextStrokeOrderType.autoAnimation,
                 width: 300,
                 height: 300,
-                strokeColor: Colors.grey.shade300,
-                animatingStrokeColor: Colors.orange,
-                strokeWidth: 8,
-                pading: 8,
-                dashColor: const Color.fromARGB(255, 3, 3, 3).withOpacity(0.2),
+                isFreeDraw: true,
+                randomSkipTutorial: true,
+                // strokeColor: Colors.grey.shade300,
+                // animatingStrokeColor: Colors.orange,
+                // strokeWidth: 8,
+                padding: EdgeInsets.only(right: 120),
+                viewPortDashSetting: ViewPortDashSetting(
+                    color: const Color.fromARGB(255, 3, 3, 3).withOpacity(0.2)),
                 isShowNumber: false,
                 numberStyle: const TextStyle(
                     color: Colors.grey,
                     fontSize: 6,
                     fontWeight: FontWeight.bold),
                 loadingBuilder: (context) => SizedBox(),
-                finishStrokeColor: Colors.green,
+                // finishStrokeColor: Colors.green,
                 onFinish: () {
                   print("FINISSSSHHSHSHSHSHS");
                 },
-                onEndStroke: () {
-                  print("end Stroke");
-                },
-                onEndStrokeCheck: (isCorrect) {
-                  print("END STROKE => $isCorrect");
-                },
-                randomSkipTutorial: true,
-                handWriteSetting: HandWriteSetting(color: Colors.black),
-                hintSetting:
-                    HintSetting(color: Colors.grey.shade300, strokeWidth: 8),
-                tutorialPathSetting: TutorialPathSetting(
-                    color: Colors.grey.shade300,
-                    handleCircleSetting: HandleCircleSetting.text()),
+
+                // onEndStroke: () {
+                //   print("end Stroke");
+                // },
+                // onEndStrokeCheck: (isCorrect) {
+                //   print("END STROKE => $isCorrect");
+                // },
+                // randomSkipTutorial: true,
+                // handWriteSetting: HandWriteSetting(color: Colors.black),
+                // hintSetting:
+                //     HintSetting(color: Colors.grey.shade300, strokeWidth: 8),
+                // tutorialPathSetting: TutorialPathSetting(
+                //     color: Colors.grey.shade300,
+                //     handleCircleSetting: HandleCircleSetting.text()),
               ),
             ],
           ),

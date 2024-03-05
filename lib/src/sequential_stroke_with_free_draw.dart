@@ -11,11 +11,9 @@ class SequentialStrokeWithFreeDraw extends StatefulWidget {
     this.backgroundColor,
     this.border,
     this.borderRadius,
-    required this.pading,
+    this.padding,
     required this.width,
     required this.height,
-    this.showDash,
-    this.dashColor,
     this.isShowNumber = true,
     this.numberStyle,
     this.onEnd,
@@ -25,17 +23,16 @@ class SequentialStrokeWithFreeDraw extends StatefulWidget {
     required this.handWriteSetting,
     required this.tutorialPathSetting,
     required this.hintSetting,
+    required this.dashSetting,
   });
 
   final TextStrokeOrderController controller;
   final Color? backgroundColor;
   final Border? border;
   final double? borderRadius;
-  final double pading;
+  final EdgeInsetsGeometry? padding;
   final double width;
   final double height;
-  final bool? showDash;
-  final Color? dashColor;
   final bool isShowNumber;
   final TextStyle? numberStyle;
   final Function()? onEnd;
@@ -48,6 +45,8 @@ class SequentialStrokeWithFreeDraw extends StatefulWidget {
   final TutorialPathSetting tutorialPathSetting;
 
   final HintSetting hintSetting;
+
+  final ViewPortDashSetting dashSetting;
 
   @override
   State<SequentialStrokeWithFreeDraw> createState() =>
@@ -115,13 +114,16 @@ class _SequentialStrokeWithFreeDrawState
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-          color: widget.backgroundColor,
-          border: widget.border,
-          borderRadius: BorderRadius.circular(widget.borderRadius ?? 0)),
-      child: Padding(
-        padding: EdgeInsets.all(widget.pading),
+    return CustomPaint(
+      painter: DashViewPortPainter(dashSetting: widget.dashSetting),
+      child: Container(
+        padding: widget.padding,
+        width: widget.width,
+        height: widget.height,
+        decoration: BoxDecoration(
+            color: widget.backgroundColor,
+            border: widget.border,
+            borderRadius: BorderRadius.circular(widget.borderRadius ?? 0)),
         child: GestureDetector(
           onTapDown: (details) {
             points.clear();
@@ -146,26 +148,23 @@ class _SequentialStrokeWithFreeDrawState
           },
           child: CustomPaint(
             painter: PaintedPainter(
-                animation: widget.controller.animationController,
-                pathSegments: widget.controller.listPathSegments,
-                tutorialPathSetting: widget.tutorialPathSetting,
-                hintSetting: widget.hintSetting,
-                isFinish: drawState == DrawState.finish,
-                textSegments:
-                    widget.controller.parser!.getTextSegments().map((e) {
-                  final segment = e;
-                  if (widget.numberStyle != null) {
-                    segment.textStyle = widget.numberStyle!;
-                  }
-                  return segment;
-                }).toList(),
-                handlePositionCallback: widget.controller.updateHandlePosision,
-                getListCurrentOffsets:
-                    widget.controller.updateListCurrentOffsets,
-                debugOptions: DebugOptions(
-                    showViewPort: widget.showDash ?? true,
-                    viewPortColor: widget.dashColor ?? Colors.grey,
-                    showNumber: widget.isShowNumber)),
+              animation: widget.controller.animationController,
+              pathSegments: widget.controller.listPathSegments,
+              tutorialPathSetting: widget.tutorialPathSetting,
+              hintSetting: widget.hintSetting,
+              isFinish: drawState == DrawState.finish,
+              textSegments: widget.isShowNumber
+                  ? widget.controller.parser!.getTextSegments().map((e) {
+                      final segment = e;
+                      if (widget.numberStyle != null) {
+                        segment.textStyle = widget.numberStyle!;
+                      }
+                      return segment;
+                    }).toList()
+                  : [],
+              handlePositionCallback: widget.controller.updateHandlePosision,
+              getListCurrentOffsets: widget.controller.updateListCurrentOffsets,
+            ),
             foregroundPainter: HandWritePainter(
                 widget.controller.animationController,
                 widget.controller.listPathSegments,
@@ -173,8 +172,8 @@ class _SequentialStrokeWithFreeDrawState
                 widget.handWriteSetting.size,
                 points),
             child: SizedBox(
-              width: widget.width - widget.pading,
-              height: widget.height - widget.pading,
+              width: widget.width - (widget.padding?.horizontal ?? 0),
+              height: widget.height - (widget.padding?.vertical ?? 0),
             ),
           ),
         ),

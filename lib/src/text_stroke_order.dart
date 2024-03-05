@@ -5,41 +5,36 @@ import 'sequential_stroke_order.dart';
 import 'sequential_stroke_with_free_draw.dart';
 
 class TextStrokeOrder extends StatefulWidget {
-  const TextStrokeOrder({
-    super.key,
-    required this.controller,
-    this.type = TextStrokeOrderType.autoAnimation,
-    this.animation,
-    this.loadingBuilder,
-    this.width = 300,
-    this.height = 300,
-    this.pading = 0,
-    this.backgroundColor,
-    this.borderRadius,
-    this.border,
-    this.strokeWidth,
-    this.strokeColor,
-    this.animatingStrokeColor,
-    this.showDash,
-    this.dashColor,
-    this.isShowNumber = true,
-    this.numberStyle,
-    this.onFinish,
-    this.finishStrokeColor,
-    this.randomSkipTutorial = false,
-    this.onEndStroke,
-    this.onEndStrokeCheck,
-    this.autoAnimate = true,
-    this.handWriteSetting = const HandWriteSetting(),
-    this.tutorialPathSetting = const TutorialPathSetting(),
-    this.hintSetting = const HintSetting(),
-  });
+  const TextStrokeOrder(
+      {super.key,
+      required this.controller,
+      this.type = TextStrokeOrderType.autoAnimation,
+      this.loadingBuilder,
+      this.width = 300,
+      this.height = 300,
+      this.padding,
+      this.backgroundColor,
+      this.borderRadius,
+      this.border,
+      this.strokeWidth,
+      this.strokeColor,
+      this.animatingStrokeColor,
+      this.isShowNumber = true,
+      this.numberStyle,
+      this.onFinish,
+      this.finishStrokeColor,
+      this.randomSkipTutorial = false,
+      this.onEndStroke,
+      this.onEndStrokeCheck,
+      this.autoAnimate = true,
+      this.handWriteSetting = const HandWriteSetting(),
+      this.tutorialPathSetting = const TutorialPathSetting(),
+      this.hintSetting = const HintSetting(),
+      this.viewPortDashSetting = const ViewPortDashSetting()});
 
   final TextStrokeOrderController controller;
 
   final TextStrokeOrderType type;
-
-  final AnimationController? animation;
 
   final Widget Function(BuildContext context)? loadingBuilder;
 
@@ -47,7 +42,7 @@ class TextStrokeOrder extends StatefulWidget {
 
   final double height;
 
-  final double pading;
+  final EdgeInsetsGeometry? padding;
 
   final Color? backgroundColor;
 
@@ -60,10 +55,6 @@ class TextStrokeOrder extends StatefulWidget {
   final Color? strokeColor;
 
   final Color? animatingStrokeColor;
-
-  final bool? showDash;
-
-  final Color? dashColor;
 
   final bool isShowNumber;
 
@@ -84,10 +75,70 @@ class TextStrokeOrder extends StatefulWidget {
   final TutorialPathSetting tutorialPathSetting;
 
   final HintSetting hintSetting;
+
+  final ViewPortDashSetting viewPortDashSetting;
+
   final bool autoAnimate;
 
   @override
   State<TextStrokeOrder> createState() => _TextStrokeOrderState();
+
+  const TextStrokeOrder.autoAnimation(
+      {super.key,
+      required this.controller,
+      this.width = 300,
+      this.height = 300,
+      this.padding,
+      this.backgroundColor,
+      this.border,
+      this.borderRadius,
+      this.strokeWidth,
+      this.strokeColor,
+      this.animatingStrokeColor,
+      this.isShowNumber = true,
+      this.numberStyle,
+      this.loadingBuilder,
+      this.onFinish,
+      this.viewPortDashSetting = const ViewPortDashSetting(),
+      this.autoAnimate = true})
+      : type = TextStrokeOrderType.autoAnimation,
+        onEndStroke = null,
+        onEndStrokeCheck = null,
+        finishStrokeColor = null,
+        randomSkipTutorial = false,
+        handWriteSetting = const HandWriteSetting(),
+        tutorialPathSetting = const TutorialPathSetting(),
+        hintSetting = const HintSetting();
+
+  const TextStrokeOrder.sequentialStroke({
+    super.key,
+    required this.controller,
+    required bool isFreeDraw,
+    this.width = 300,
+    this.height = 300,
+    this.padding,
+    this.backgroundColor,
+    this.border,
+    this.borderRadius,
+    this.isShowNumber = true,
+    this.numberStyle,
+    this.loadingBuilder,
+    this.onFinish,
+    this.onEndStroke,
+    this.onEndStrokeCheck,
+    this.finishStrokeColor,
+    this.randomSkipTutorial = false,
+    this.viewPortDashSetting = const ViewPortDashSetting(),
+    this.handWriteSetting = const HandWriteSetting(),
+    this.tutorialPathSetting = const TutorialPathSetting(),
+    this.hintSetting = const HintSetting(),
+  })  : type = isFreeDraw
+            ? TextStrokeOrderType.sequentialStrokeWithFreeDraw
+            : TextStrokeOrderType.sequentialStroke,
+        strokeWidth = null,
+        strokeColor = null,
+        animatingStrokeColor = null,
+        autoAnimate = true;
 }
 
 class _TextStrokeOrderState extends State<TextStrokeOrder> {
@@ -113,7 +164,7 @@ class _TextStrokeOrderState extends State<TextStrokeOrder> {
         return AnimationStrokeOrder(
           controller: widget.controller,
           height: widget.height,
-          pading: widget.pading,
+          padding: widget.padding,
           width: widget.width,
           backgroundColor: widget.backgroundColor,
           border: widget.border,
@@ -121,35 +172,34 @@ class _TextStrokeOrderState extends State<TextStrokeOrder> {
           strokeWidth: widget.strokeWidth,
           strokeColor: widget.strokeColor,
           animatingStrokeColor: widget.animatingStrokeColor,
-          showDash: widget.showDash,
-          dashColor: widget.dashColor,
           isShowNumber: widget.isShowNumber,
           numberStyle: widget.numberStyle,
           autoAnimate: widget.autoAnimate,
+          dashSetting: widget.viewPortDashSetting,
+          onFinish: widget.onFinish,
         );
       case TextStrokeOrderType.sequentialStroke:
         return SequentialStrokeOrder(
           controller: widget.controller,
           height: widget.height,
-          pading: widget.pading,
+          padding: widget.padding,
           width: widget.width,
           backgroundColor: widget.backgroundColor,
           border: widget.border,
           borderRadius: widget.borderRadius,
           strokeColor: widget.strokeColor,
-          showDash: widget.showDash,
-          dashColor: widget.dashColor,
           isShowNumber: widget.isShowNumber,
           numberStyle: widget.numberStyle,
           onEnd: widget.onFinish,
           randomSkipTutorial: widget.randomSkipTutorial,
           onEndStroke: widget.onEndStroke,
           tutorialPathSetting: widget.tutorialPathSetting,
+          dashSetting: widget.viewPortDashSetting,
         );
       case TextStrokeOrderType.sequentialStrokeWithFreeDraw:
         return SequentialStrokeWithFreeDraw(
           controller: widget.controller,
-          pading: widget.pading,
+          padding: widget.padding,
           width: widget.width,
           height: widget.height,
           isShowNumber: widget.isShowNumber,
@@ -157,8 +207,6 @@ class _TextStrokeOrderState extends State<TextStrokeOrder> {
           backgroundColor: widget.backgroundColor,
           border: widget.border,
           borderRadius: widget.borderRadius,
-          showDash: widget.showDash,
-          dashColor: widget.dashColor,
           numberStyle: widget.numberStyle,
           onEnd: widget.onFinish,
           onEndStroke: widget.onEndStroke,
@@ -166,6 +214,7 @@ class _TextStrokeOrderState extends State<TextStrokeOrder> {
           handWriteSetting: widget.handWriteSetting,
           tutorialPathSetting: widget.tutorialPathSetting,
           hintSetting: widget.hintSetting,
+          dashSetting: widget.viewPortDashSetting,
         );
       default:
         return const SizedBox();

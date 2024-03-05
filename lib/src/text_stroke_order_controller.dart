@@ -51,12 +51,20 @@ class TextStrokeOrderController extends ChangeNotifier {
   AnimationController animationController;
 
   initialAnimate(bool autoAnimate) {
-    final duration = animationController.duration ?? const Duration(seconds: 1);
-    animationController.duration = duration * listPathSegments.length;
+    final d = duration ?? const Duration(seconds: 1);
+    animationController.duration = d * listPathSegments.length;
     if (autoAnimate) {
-      animationController.reset();
-      animationController.forward();
+      startAnimation();
     }
+  }
+
+  startAnimation() {
+    animationController.reset();
+    animationController.forward();
+  }
+
+  resetAnimation() {
+    animationController.reset();
   }
 
   Future<bool> reloadSvg() async {

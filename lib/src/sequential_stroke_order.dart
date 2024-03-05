@@ -11,36 +11,34 @@ class SequentialStrokeOrder extends StatefulWidget {
     this.backgroundColor,
     this.border,
     this.borderRadius,
-    required this.pading,
+    this.padding,
     required this.width,
     required this.height,
     this.strokeColor,
-    this.showDash,
-    this.dashColor,
     this.isShowNumber = true,
     this.numberStyle,
     this.onEnd,
     this.randomSkipTutorial = false,
     this.onEndStroke,
     required this.tutorialPathSetting,
+    required this.dashSetting,
   });
 
   final TextStrokeOrderController controller;
   final Color? backgroundColor;
   final Border? border;
   final double? borderRadius;
-  final double pading;
+  final EdgeInsetsGeometry? padding;
   final double width;
   final double height;
   final Color? strokeColor;
-  final bool? showDash;
-  final Color? dashColor;
   final bool isShowNumber;
   final TextStyle? numberStyle;
   final Function()? onEnd;
   final Function()? onEndStroke;
   final bool randomSkipTutorial;
   final TutorialPathSetting tutorialPathSetting;
+  final ViewPortDashSetting dashSetting;
 
   @override
   State<SequentialStrokeOrder> createState() => _SequentialStrokeOrderState();
@@ -89,65 +87,60 @@ class _SequentialStrokeOrderState extends State<SequentialStrokeOrder> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-          color: widget.backgroundColor,
-          border: widget.border,
-          borderRadius: BorderRadius.circular(widget.borderRadius ?? 0)),
-      child: Padding(
-        padding: EdgeInsets.all(widget.pading),
-        child: Stack(
-          children: [
-            GestureDetector(
-              onTapDown: (details) {
-                widget.controller.startDrawCheck(details.localPosition);
-              },
-              onPanStart: (details) {
-                if (widget.controller.canDraw = true) {
-                  return;
-                }
-                widget.controller.startDrawCheck(details.localPosition);
-              },
-              onPanCancel: () {
-                widget.controller.endDrawCheck();
-              },
-              onPanEnd: (details) {
-                widget.controller.endDrawCheck();
-              },
-              onPanUpdate: (details) {
-                widget.controller.updateDrawTutorial(details.localPosition);
-              },
-              child: CustomPaint(
-                painter: PaintedPainter(
-                    animation: widget.controller.animationController,
-                    pathSegments: widget.controller.listPathSegments,
-                    isFinish: drawState == DrawState.finish,
-                    textSegments:
-                        widget.controller.parser!.getTextSegments().map((e) {
+    return CustomPaint(
+      painter: DashViewPortPainter(dashSetting: widget.dashSetting),
+      child: Container(
+        padding: widget.padding,
+        width: widget.width,
+        height: widget.height,
+        decoration: BoxDecoration(
+            color: widget.backgroundColor,
+            border: widget.border,
+            borderRadius: BorderRadius.circular(widget.borderRadius ?? 0)),
+        child: GestureDetector(
+          onTapDown: (details) {
+            widget.controller.startDrawCheck(details.localPosition);
+          },
+          onPanStart: (details) {
+            if (widget.controller.canDraw = true) {
+              return;
+            }
+            widget.controller.startDrawCheck(details.localPosition);
+          },
+          onPanCancel: () {
+            widget.controller.endDrawCheck();
+          },
+          onPanEnd: (details) {
+            widget.controller.endDrawCheck();
+          },
+          onPanUpdate: (details) {
+            widget.controller.updateDrawTutorial(details.localPosition);
+          },
+          child: CustomPaint(
+            painter: PaintedPainter(
+              animation: widget.controller.animationController,
+              pathSegments: widget.controller.listPathSegments,
+              isFinish: drawState == DrawState.finish,
+              textSegments: widget.isShowNumber
+                  ? widget.controller.parser!.getTextSegments().map((e) {
                       final segment = e;
                       if (widget.numberStyle != null) {
                         segment.textStyle = widget.numberStyle!;
                       }
                       return segment;
-                    }).toList(),
-                    hintSetting:
-                        HintSetting(color: widget.strokeColor ?? Colors.grey),
-                    tutorialPathSetting: widget.tutorialPathSetting,
-                    handlePositionCallback:
-                        widget.controller.updateHandlePosision,
-                    getListCurrentOffsets:
-                        widget.controller.updateListCurrentOffsets,
-                    debugOptions: DebugOptions(
-                        showViewPort: widget.showDash ?? true,
-                        viewPortColor: widget.dashColor ?? Colors.grey,
-                        showNumber: widget.isShowNumber)),
-                child: SizedBox(
-                  width: widget.width - widget.pading,
-                  height: widget.height - widget.pading,
-                ),
-              ),
+                    }).toList()
+                  : [],
+              hintSetting:
+                  HintSetting(color: widget.strokeColor ?? Colors.grey),
+              tutorialPathSetting: widget.tutorialPathSetting,
+              handlePositionCallback: widget.controller.updateHandlePosision,
+              getListCurrentOffsets: widget.controller.updateListCurrentOffsets,
             ),
-          ],
+            child: SizedBox(
+              width: widget.width - (widget.padding?.horizontal ?? 0),
+              height: widget.height - (widget.padding?.vertical ?? 0),
+            ),
+          ),
         ),
       ),
     );
