@@ -41,7 +41,7 @@ class PaintedPainter extends PathPainter {
       for (var segment in pathSegments!) {
         var paint = (Paint()
           ..color = segment.isSkipTutorial
-              ? tutorialPathSetting.color
+              ? tutorialPathSetting.fillColor
               : hintSetting.enable
                   ? hintSetting.color
                   : Colors.transparent
