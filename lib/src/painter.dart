@@ -173,6 +173,9 @@ class PaintedPainter extends PathPainter {
 
     _drawDashArrowTutorial(segment, pathMetric, canvas);
 
+    if (drawLength == 0 && !tutorialPathSetting.handleEnable) {
+      return;
+    }
     var subPath = pathMetric.extractPath(0, drawLength);
     final p = Paint()
       ..color = isFinish
