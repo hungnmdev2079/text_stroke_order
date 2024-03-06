@@ -206,6 +206,7 @@ class PathSegment {
         pathIndex = 0,
         isTutorial = false,
         tutorialPercent = 0,
+        currentIndexOffset = 0,
         isDoneTutorial = false,
         isSkipTutorial = false,
         isShowDashArrow = false,
@@ -232,6 +233,8 @@ class PathSegment {
   late bool isTutorial;
 
   late double tutorialPercent;
+
+  late int currentIndexOffset;
 
   late bool isDoneTutorial;
 

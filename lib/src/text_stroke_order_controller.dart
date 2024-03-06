@@ -108,6 +108,7 @@ class TextStrokeOrderController extends ChangeNotifier {
         listPathSegments[i].isTutorial = false;
       }
       listPathSegments[i].tutorialPercent = 0;
+      listPathSegments[i].currentIndexOffset = 0;
     }
     notifyListeners();
   }
@@ -123,6 +124,7 @@ class TextStrokeOrderController extends ChangeNotifier {
       listPathSegments[i].isTutorial = false;
       listPathSegments[i].isSkipTutorial = false;
       listPathSegments[i].tutorialPercent = 0;
+      listPathSegments[i].currentIndexOffset = 0;
       listPathSegments[i].isDoneTutorial = false;
     }
     while (idx.length < partLenght) {
@@ -164,13 +166,10 @@ class TextStrokeOrderController extends ChangeNotifier {
     }
     // _resetStateDraw();
     final o = position;
-    final x = findNearestIndexOffset(o, currentOffset!);
-
+    final x = findNearestIndexOffset(
+        listPathSegments[currentIndex].currentIndexOffset, o, currentOffset!);
+    listPathSegments[currentIndex].currentIndexOffset = x;
     var percent = x / (currentOffset!.length - 1);
-    if ((percent < listPathSegments[currentIndex].tutorialPercent) ||
-        (percent - listPathSegments[currentIndex].tutorialPercent) > 0.5) {
-      return;
-    }
 
     if (listPathSegments[currentIndex].isDoneTutorial == true) {
       return;
@@ -189,6 +188,8 @@ class TextStrokeOrderController extends ChangeNotifier {
   bool nextStroke() {
     listPathSegments[currentIndex].isDoneTutorial = true;
     listPathSegments[currentIndex].tutorialPercent = 1;
+    listPathSegments[currentIndex].currentIndexOffset =
+        listPathSegments[currentIndex].getOffsets.length;
     final canNext = _nextStroke();
     notifyListeners();
     return canNext;
@@ -247,6 +248,8 @@ class TextStrokeOrderController extends ChangeNotifier {
     if (isCorrect) {
       listPathSegments[currentIndex].isDoneTutorial = true;
       listPathSegments[currentIndex].tutorialPercent = 1;
+      listPathSegments[currentIndex].currentIndexOffset =
+          listPathSegments[currentIndex].getOffsets.length;
       if (currentIndex < listPathSegments.length - 1) {
         _nextStroke();
       } else {
@@ -394,7 +397,8 @@ class TextStrokeOrderController extends ChangeNotifier {
     return sqrt(pow(p.dx - q.dx, 2) + pow(p.dy - q.dy, 2));
   }
 
-  int findNearestIndexOffset(Offset targetOffset, List<Offset> offsets) {
+  int findNearestIndexOffset(
+      int lastIndex, Offset targetOffset, List<Offset> offsets) {
     double minDistance = double.infinity;
     int index = 0;
     for (int i = 0; i < offsets.length; i++) {
@@ -402,7 +406,12 @@ class TextStrokeOrderController extends ChangeNotifier {
       double distance = (offset - targetOffset).distanceSquared;
       if (distance < minDistance) {
         minDistance = distance;
-        index = i;
+        final x = i - lastIndex;
+        if (x < 20 && i >= lastIndex) {
+          index = i;
+        } else {
+          index = lastIndex;
+        }
       }
     }
     return index;
