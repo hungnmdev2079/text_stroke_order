@@ -23,6 +23,7 @@ class SequentialStrokeOrder extends StatefulWidget {
     required this.tutorialPathSetting,
     required this.dashSetting,
     required this.hintSetting,
+    this.onEndDraw,
   });
 
   final TextStrokeOrderController controller;
@@ -37,6 +38,7 @@ class SequentialStrokeOrder extends StatefulWidget {
   final TextStyle? numberStyle;
   final Function()? onEnd;
   final Function()? onEndStroke;
+  final Function()? onEndDraw;
   final bool randomSkipTutorial;
   final TutorialPathSetting tutorialPathSetting;
   final ViewPortDashSetting dashSetting;
@@ -104,6 +106,7 @@ class _SequentialStrokeOrderState extends State<SequentialStrokeOrder> {
       },
       onPanEnd: (details) {
         widget.controller.endDrawCheck();
+        widget.onEndDraw?.call();
       },
       onPanUpdate: (details) {
         widget.controller.updateDrawTutorial(details.localPosition);

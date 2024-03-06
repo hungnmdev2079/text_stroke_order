@@ -30,7 +30,8 @@ class TextStrokeOrder extends StatefulWidget {
       this.handWriteSetting = const HandWriteSetting(),
       this.tutorialPathSetting = const TutorialPathSetting(),
       this.hintSetting = const HintSetting(),
-      this.viewPortDashSetting = const ViewPortDashSetting()});
+      this.viewPortDashSetting = const ViewPortDashSetting(),
+      this.onEndDraw});
 
   final TextStrokeOrderController controller;
 
@@ -65,6 +66,8 @@ class TextStrokeOrder extends StatefulWidget {
   final Function()? onEndStroke;
 
   final Function(bool isCorrect)? onEndStrokeCheck;
+
+  final Function()? onEndDraw;
 
   final Color? finishStrokeColor;
 
@@ -104,6 +107,7 @@ class TextStrokeOrder extends StatefulWidget {
       : type = TextStrokeOrderType.autoAnimation,
         onEndStroke = null,
         onEndStrokeCheck = null,
+        onEndDraw = null,
         finishStrokeColor = null,
         randomSkipTutorial = false,
         handWriteSetting = const HandWriteSetting(),
@@ -126,6 +130,7 @@ class TextStrokeOrder extends StatefulWidget {
     this.onFinish,
     this.onEndStroke,
     this.onEndStrokeCheck,
+    this.onEndDraw,
     this.finishStrokeColor,
     this.randomSkipTutorial = false,
     this.viewPortDashSetting = const ViewPortDashSetting(),
@@ -207,6 +212,7 @@ class _TextStrokeOrderState extends State<TextStrokeOrder> {
           tutorialPathSetting: widget.tutorialPathSetting,
           dashSetting: widget.viewPortDashSetting,
           hintSetting: widget.hintSetting,
+          onEndDraw: widget.onEndDraw,
         );
       case TextStrokeOrderType.sequentialStrokeWithFreeDraw:
         return SequentialStrokeWithFreeDraw(
@@ -227,6 +233,7 @@ class _TextStrokeOrderState extends State<TextStrokeOrder> {
           tutorialPathSetting: widget.tutorialPathSetting,
           hintSetting: widget.hintSetting,
           dashSetting: widget.viewPortDashSetting,
+          onEndDraw: widget.onEndDraw,
         );
       default:
         return const SizedBox();

@@ -24,6 +24,7 @@ class SequentialStrokeWithFreeDraw extends StatefulWidget {
     required this.tutorialPathSetting,
     required this.hintSetting,
     required this.dashSetting,
+    this.onEndDraw,
   });
 
   final TextStrokeOrderController controller;
@@ -38,6 +39,7 @@ class SequentialStrokeWithFreeDraw extends StatefulWidget {
   final Function()? onEnd;
   final Function()? onEndStroke;
   final Function(bool isCorrect)? onEndStrokeCheck;
+  final Function()? onEndDraw;
   final bool randomSkipTutorial;
 
   final HandWriteSetting handWriteSetting;
@@ -131,6 +133,7 @@ class _SequentialStrokeWithFreeDrawState
         widget.controller.checkHandWriteStroke(points);
         points.clear();
         setState(() {});
+        widget.onEndDraw?.call();
       },
       onPanUpdate: (details) {
         points.add(details.localPosition);
