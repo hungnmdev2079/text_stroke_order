@@ -165,7 +165,13 @@ class TextStrokeOrderController extends ChangeNotifier {
     // _resetStateDraw();
     final o = position;
     final x = findNearestIndexOffset(o, currentOffset!);
+
     var percent = x / (currentOffset!.length - 1);
+    if ((percent < listPathSegments[currentIndex].tutorialPercent) ||
+        (percent - listPathSegments[currentIndex].tutorialPercent) > 0.5) {
+      return;
+    }
+
     if (listPathSegments[currentIndex].isDoneTutorial == true) {
       return;
     }
