@@ -180,14 +180,15 @@ class TextStrokeOrderController extends ChangeNotifier {
     notifyListeners();
   }
 
-  nextStroke() {
+  bool nextStroke() {
     listPathSegments[currentIndex].isDoneTutorial = true;
     listPathSegments[currentIndex].tutorialPercent = 1;
-    _nextStroke();
+    final canNext = _nextStroke();
     notifyListeners();
+    return canNext;
   }
 
-  _nextStroke() {
+  bool _nextStroke() {
     if (currentIndex < listPathSegments.length - 1) {
       try {
         do {
@@ -195,12 +196,15 @@ class TextStrokeOrderController extends ChangeNotifier {
         } while (listPathSegments[currentIndex].isSkipTutorial);
         updateTutorial();
         _onEndStroke();
+        return true;
       } catch (e) {
         currentIndex--;
         _onFinish();
+        return false;
       }
     } else {
       _onFinish();
+      return false;
     }
   }
 
