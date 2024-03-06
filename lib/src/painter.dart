@@ -40,11 +40,13 @@ class PaintedPainter extends PathPainter {
     if (canPaint) {
       for (var segment in pathSegments!) {
         var paint = (Paint()
-          ..color = segment.isSkipTutorial
-              ? tutorialPathSetting.fillColor
-              : hintSetting.enable
-                  ? hintSetting.color
-                  : Colors.transparent
+          ..color = isFinish
+              ? tutorialPathSetting.finishColor
+              : segment.isSkipTutorial
+                  ? tutorialPathSetting.fillColor
+                  : hintSetting.enable
+                      ? hintSetting.color
+                      : Colors.transparent
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round
           ..strokeJoin = StrokeJoin.round
