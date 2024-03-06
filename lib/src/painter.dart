@@ -38,23 +38,21 @@ class PaintedPainter extends PathPainter {
   void paint(Canvas canvas, Size size) {
     canvas = super.paintOrDebug(canvas, size);
     if (canPaint) {
-      if (hintSetting.enable) {
-        for (var segment in pathSegments!) {
-          var paint = (Paint()
-            ..color = hintSetting.color
-            ..style = PaintingStyle.stroke
-            ..strokeCap = StrokeCap.round
-            ..strokeJoin = StrokeJoin.round
-            ..strokeWidth = hintSetting.strokeWidth);
-          canvas.drawPath(segment.path, paint);
-        }
-      }
-
       for (var segment in pathSegments!) {
-        if (segment.isSkipTutorial) {
-          var pathMetric = segment.path.computeMetrics().first;
-          _drawTutorialLine(pathMetric, segment.length, segment, canvas);
-        } else if (segment.isTutorial) {
+        var paint = (Paint()
+          ..color = segment.isSkipTutorial
+              ? tutorialPathSetting.color
+              : hintSetting.enable
+                  ? hintSetting.color
+                  : Colors.transparent
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..strokeWidth = hintSetting.strokeWidth);
+        canvas.drawPath(segment.path, paint);
+      }
+      for (var segment in pathSegments!) {
+        if (segment.isTutorial && !segment.isSkipTutorial) {
           final scale = calculateScaleFactor(Size.copy(size));
 
           var offset = Offset.zero - pathBoundingBox!.topLeft;

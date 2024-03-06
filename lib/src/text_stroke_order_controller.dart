@@ -180,6 +180,13 @@ class TextStrokeOrderController extends ChangeNotifier {
     notifyListeners();
   }
 
+  nextStroke() {
+    listPathSegments[currentIndex].isDoneTutorial = true;
+    listPathSegments[currentIndex].tutorialPercent = 1;
+    _nextStroke();
+    notifyListeners();
+  }
+
   _nextStroke() {
     if (currentIndex < listPathSegments.length - 1) {
       try {
