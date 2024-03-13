@@ -149,7 +149,7 @@ class TextStrokeOrderController extends ChangeNotifier {
     if (handlePosition == null) {
       return;
     }
-    if ((handlePosition! - position).distance < 25) {
+    if ((handlePosition! - position).distance < 30) {
       canDraw = true;
     } else {
       canDraw = false;
@@ -329,7 +329,7 @@ class TextStrokeOrderController extends ChangeNotifier {
     // } else {
     //   startEndMargin = 50;
     // }
-    startEndMargin = 30;
+    startEndMargin = 50;
     return startEndMargin;
   }
 
@@ -341,7 +341,7 @@ class TextStrokeOrderController extends ChangeNotifier {
     //   lengthRange = [0.2, 3];
     // } else {
     // }
-    lengthRange = [0.5, 1.5];
+    lengthRange = [0.5, 3];
 
     return lengthRange.map((e) => e * medianLength).toList();
   }
