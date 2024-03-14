@@ -556,9 +556,17 @@ class HandWritePainter extends PathPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..strokeWidth = strokeSize * scale.x;
-    for (int i = 0; i < points.length - 1; i++) {
-      canvas.drawLine(points[i], points[i + 1], paint);
+    Path path = Path();
+    if (points.isNotEmpty) {
+      path.moveTo(points.first.dx, points.first.dy);
+      for (int i = 0; i < points.length - 1; i++) {
+        Offset midPoint = Offset((points[i].dx + points[i + 1].dx) / 2,
+            (points[i].dy + points[i + 1].dy) / 2);
+        path.quadraticBezierTo(
+            points[i].dx, points[i].dy, midPoint.dx, midPoint.dy);
+      }
     }
+    canvas.drawPath(path, paint);
   }
 
   @override
