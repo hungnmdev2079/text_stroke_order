@@ -119,10 +119,16 @@ class _SequentialStrokeWithFreeDrawState
     return GestureDetector(
       onTapDown: (details) {
         points.clear();
-        points.add(details.localPosition);
+        final p = details.localPosition -
+            Offset(
+                widget.padding!.horizontal / 2, widget.padding!.vertical / 2);
+        points.add(p);
       },
       onPanStart: (details) {
-        points.add(details.localPosition);
+        final p = details.localPosition -
+            Offset(
+                widget.padding!.horizontal / 2, widget.padding!.vertical / 2);
+        points.add(p);
       },
       onPanCancel: () {
         widget.controller.checkHandWriteStroke(points);
@@ -136,37 +142,44 @@ class _SequentialStrokeWithFreeDrawState
         widget.onEndDraw?.call();
       },
       onPanUpdate: (details) {
-        points.add(details.localPosition);
+        final p = details.localPosition -
+            Offset(
+                widget.padding!.horizontal / 2, widget.padding!.vertical / 2);
+        points.add(p);
         setState(() {});
       },
-      child: CustomPaint(
-        painter: PaintedPainter(
-          animation: widget.controller.animationController,
-          pathSegments: widget.controller.listPathSegments,
-          tutorialPathSetting: widget.tutorialPathSetting,
-          hintSetting: widget.hintSetting,
-          isFinish: drawState == DrawState.finish,
-          textSegments: widget.isShowNumber
-              ? widget.controller.parser!.getTextSegments().map((e) {
-                  final segment = e;
-                  if (widget.numberStyle != null) {
-                    segment.textStyle = widget.numberStyle!;
-                  }
-                  return segment;
-                }).toList()
-              : [],
-          handlePositionCallback: widget.controller.updateHandlePosision,
-          getListCurrentOffsets: widget.controller.updateListCurrentOffsets,
-        ),
-        foregroundPainter: HandWritePainter(
-            widget.controller.animationController,
-            widget.controller.listPathSegments,
-            widget.handWriteSetting.color,
-            widget.handWriteSetting.size,
-            points),
-        child: SizedBox(
-          width: widget.width - (widget.padding?.horizontal ?? 0),
-          height: widget.height - (widget.padding?.vertical ?? 0),
+      child: Container(
+        color: Colors.transparent,
+        padding: widget.padding ?? EdgeInsets.zero,
+        child: CustomPaint(
+          painter: PaintedPainter(
+            animation: widget.controller.animationController,
+            pathSegments: widget.controller.listPathSegments,
+            tutorialPathSetting: widget.tutorialPathSetting,
+            hintSetting: widget.hintSetting,
+            isFinish: drawState == DrawState.finish,
+            textSegments: widget.isShowNumber
+                ? widget.controller.parser!.getTextSegments().map((e) {
+                    final segment = e;
+                    if (widget.numberStyle != null) {
+                      segment.textStyle = widget.numberStyle!;
+                    }
+                    return segment;
+                  }).toList()
+                : [],
+            handlePositionCallback: widget.controller.updateHandlePosision,
+            getListCurrentOffsets: widget.controller.updateListCurrentOffsets,
+          ),
+          foregroundPainter: HandWritePainter(
+              widget.controller.animationController,
+              widget.controller.listPathSegments,
+              widget.handWriteSetting.color,
+              widget.handWriteSetting.size,
+              points),
+          child: SizedBox(
+            width: widget.width - (widget.padding?.horizontal ?? 0),
+            height: widget.height - (widget.padding?.vertical ?? 0),
+          ),
         ),
       ),
     );

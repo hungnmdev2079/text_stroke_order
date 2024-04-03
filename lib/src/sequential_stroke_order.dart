@@ -93,13 +93,20 @@ class _SequentialStrokeOrderState extends State<SequentialStrokeOrder> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (details) {
-        widget.controller.startDrawCheck(details.localPosition);
+        final p = details.localPosition -
+            Offset(
+                widget.padding!.horizontal / 2, widget.padding!.vertical / 2);
+        widget.controller.startDrawCheck(p);
       },
       onPanStart: (details) {
         if (widget.controller.canDraw = true) {
           return;
         }
-        widget.controller.startDrawCheck(details.localPosition);
+        final p = details.localPosition -
+            Offset(
+                widget.padding!.horizontal / 2, widget.padding!.vertical / 2);
+
+        widget.controller.startDrawCheck(p);
       },
       onPanCancel: () {
         widget.controller.endDrawCheck();
@@ -109,30 +116,37 @@ class _SequentialStrokeOrderState extends State<SequentialStrokeOrder> {
         widget.onEndDraw?.call();
       },
       onPanUpdate: (details) {
-        widget.controller.updateDrawTutorial(details.localPosition);
+        final p = details.localPosition -
+            Offset(
+                widget.padding!.horizontal / 2, widget.padding!.vertical / 2);
+        widget.controller.updateDrawTutorial(p);
       },
-      child: CustomPaint(
-        painter: PaintedPainter(
-          animation: widget.controller.animationController,
-          pathSegments: widget.controller.listPathSegments,
-          isFinish: drawState == DrawState.finish,
-          textSegments: widget.isShowNumber
-              ? widget.controller.parser!.getTextSegments().map((e) {
-                  final segment = e;
-                  if (widget.numberStyle != null) {
-                    segment.textStyle = widget.numberStyle!;
-                  }
-                  return segment;
-                }).toList()
-              : [],
-          hintSetting: widget.hintSetting,
-          tutorialPathSetting: widget.tutorialPathSetting,
-          handlePositionCallback: widget.controller.updateHandlePosision,
-          getListCurrentOffsets: widget.controller.updateListCurrentOffsets,
-        ),
-        child: SizedBox(
-          width: widget.width - (widget.padding?.horizontal ?? 0),
-          height: widget.height - (widget.padding?.vertical ?? 0),
+      child: Container(
+        color: Colors.transparent,
+        padding: widget.padding ?? EdgeInsets.zero,
+        child: CustomPaint(
+          painter: PaintedPainter(
+            animation: widget.controller.animationController,
+            pathSegments: widget.controller.listPathSegments,
+            isFinish: drawState == DrawState.finish,
+            textSegments: widget.isShowNumber
+                ? widget.controller.parser!.getTextSegments().map((e) {
+                    final segment = e;
+                    if (widget.numberStyle != null) {
+                      segment.textStyle = widget.numberStyle!;
+                    }
+                    return segment;
+                  }).toList()
+                : [],
+            hintSetting: widget.hintSetting,
+            tutorialPathSetting: widget.tutorialPathSetting,
+            handlePositionCallback: widget.controller.updateHandlePosision,
+            getListCurrentOffsets: widget.controller.updateListCurrentOffsets,
+          ),
+          child: SizedBox(
+            width: widget.width - (widget.padding?.horizontal ?? 0),
+            height: widget.height - (widget.padding?.vertical ?? 0),
+          ),
         ),
       ),
     );

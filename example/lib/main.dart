@@ -46,7 +46,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       // svgProvider: SvgProvider.string(svg),
 
       svgProvider: SvgProvider.network(
-          'https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/05270.svg'),
+          'https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/03048.svg'),
       vsync: this,
       duration: const Duration(milliseconds: 800));
 
@@ -72,14 +72,14 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                   onPressed: () {
                     controller.resetAnimation();
                     controller.startAnimation();
+                    controller.reset();
                   },
                   child: const Text("Reset")),
-              TextStrokeOrder.autoAnimation(
+              TextStrokeOrder.sequentialStroke(
                 controller: controller,
+                isFreeDraw: false,
                 width: 300,
                 height: 300,
-                animatingStrokeColor: Colors.red,
-                strokeWidth: 4,
                 padding: const EdgeInsets.all(20),
                 viewPortDashSetting: ViewPortDashSetting(
                     color: const Color.fromARGB(255, 3, 3, 3).withOpacity(0.2)),
