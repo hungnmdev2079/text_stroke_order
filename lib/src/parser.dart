@@ -154,8 +154,15 @@ class SvgParser {
         final value =
             transform.value.replaceAll('matrix(', '').replaceAll(')', '');
         final spl = value.split(' ');
-        x = double.parse(spl[4]);
-        y = double.parse(spl[5]);
+        if (spl.length < 4) {
+          if (spl.length == 2) {
+            x = double.parse(spl[0]);
+            y = double.parse(spl[1]);
+          }
+        } else {
+          x = double.parse(spl[4]);
+          y = double.parse(spl[5]);
+        }
       }
       addTextSegments(
           text, TextStyle(color: textColor, fontSize: fontSize), Offset(x, y));

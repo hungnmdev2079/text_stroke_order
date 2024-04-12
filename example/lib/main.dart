@@ -46,7 +46,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       // svgProvider: SvgProvider.string(svg),
 
       svgProvider: SvgProvider.network(
-          'https://raw.githubusercontent.com/KanjiVG/kanjivg/master/kanji/03048.svg'),
+          'https://raw.githubusercontent.com/tranquockhanh0506/hanzivg_khanhtq/master/kanji/054e5.svg'),
       vsync: this,
       duration: const Duration(milliseconds: 800));
 
