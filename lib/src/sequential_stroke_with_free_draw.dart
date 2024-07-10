@@ -65,7 +65,7 @@ class _SequentialStrokeWithFreeDrawState
     super.initState();
     widget.controller.animationController.forward();
     if (widget.randomSkipTutorial) {
-      widget.controller.setSequentialStrokeOrder();
+      widget.controller.setRandomSkipStrokeOrder();
     }
     // widget.controller.updateAnimateStrokeColor(widget.animatingStrokeColor);
     widget.controller.updateTutorial();
