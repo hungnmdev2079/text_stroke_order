@@ -114,36 +114,14 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   setSkipStrokeOrder() {
-    final index = listPathSegments.indexWhere((element) => element.isTutorial);
-    // ẩn lần lượt các nét từ index đến hết và chuyển sang nét tiếp theo
-    for (var i = index; i < listPathSegments.length; i++) {
+    // ẩn dần các nét vẽ từ currentIndex đến 0
+    for (var i = currentIndex; i >= 0; i--) {
       listPathSegments[i].isSkipTutorial = true;
     }
-    currentIndex = listPathSegments.indexWhere((element) => !element.isSkipTutorial);
+    // tìm currentIndex tiếp theo
+    currentIndex =
+        listPathSegments.indexWhere((element) => !element.isSkipTutorial);
     listPathSegments[currentIndex].isTutorial = true;
-    // if (listPathSegments.length <= 1) {
-    //   currentIndex = 0;
-    //   return;
-    // }
-    // final partLenght = listPathSegments.length ~/ 2;
-    // final List<int> idx = [];
-    // for (var i = 0; i < listPathSegments.length; i++) {
-    //   listPathSegments[i].isTutorial = false;
-    //   listPathSegments[i].isSkipTutorial = false;
-    //   listPathSegments[i].tutorialPercent = 0;
-    //   listPathSegments[i].currentIndexOffset = 0;
-    //   listPathSegments[i].isDoneTutorial = false;
-    // }
-    // while (idx.length < partLenght) {
-    //   Random random = Random();
-    //   int x = random.nextInt(listPathSegments.length);
-    //   if (!idx.contains(x)) {
-    //     listPathSegments[x].isSkipTutorial = true;
-    //     idx.add(x);
-    //   }
-    // }
-    // currentIndex =
-    //     listPathSegments.indexWhere((element) => !element.isSkipTutorial);
   }
 
   updateTutorial() {
