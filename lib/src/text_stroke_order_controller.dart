@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+
 import 'package:flutter/material.dart';
 
 import 'parser.dart';
@@ -13,12 +14,12 @@ class TextStrokeOrderController extends ChangeNotifier {
   TextStrokeOrderController(
       {required this.svgProvider, required TickerProvider vsync, this.duration})
       : animationController =
-  AnimationController(vsync: vsync, duration: duration);
+            AnimationController(vsync: vsync, duration: duration);
 
   StreamController<DrawState> drawStreamState =
-  StreamController<DrawState>.broadcast();
+      StreamController<DrawState>.broadcast();
   StreamController<HandDrawState> handDrawStreamState =
-  StreamController<HandDrawState>.broadcast();
+      StreamController<HandDrawState>.broadcast();
 
   int currentIndex = 0;
 
@@ -113,17 +114,34 @@ class TextStrokeOrderController extends ChangeNotifier {
     notifyListeners();
   }
 
-  setSequentialStrokeOrder() {
-    currentIndex =
-        listPathSegments.indexWhere((element) => !element.isSkipTutorial);
+  setRandomSkipStrokeOrder() {
+    if (listPathSegments.length <= 1) {
+      currentIndex = 0;
+      return;
+    }
+    final partLenght = listPathSegments.length ~/ 2;
+    final List<int> idx = [];
     for (var i = 0; i < listPathSegments.length; i++) {
-      listPathSegments[i].isSkipTutorial = false;
       listPathSegments[i].isTutorial = false;
+      listPathSegments[i].isSkipTutorial = false;
       listPathSegments[i].tutorialPercent = 0;
       listPathSegments[i].currentIndexOffset = 0;
       listPathSegments[i].isDoneTutorial = false;
     }
-    updateTutorial();
+    while (idx.length < partLenght) {
+      // hiển thị lần lượt từng phần cho đến khi hết phần
+      final x = idx.length;
+      final y = x + partLenght;
+      if (y < listPathSegments.length) {
+        idx.add(x);
+        idx.add(y);
+      } else {
+        idx.add(x);
+      }
+
+    }
+    currentIndex =
+        listPathSegments.indexWhere((element) => !element.isSkipTutorial);
   }
 
   updateTutorial() {
@@ -262,7 +280,7 @@ class TextStrokeOrderController extends ChangeNotifier {
     final medianLength = _getLength(median);
 
     final List<double> allowedLengthRange =
-    _getAllowedLengthRange(medianLength);
+        _getAllowedLengthRange(medianLength);
     final double startEndMargin = _getStartEndMargin(medianLength);
 
     bool isCorrect = false;
@@ -277,10 +295,10 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   bool _strokeStartIsWithinMargin(
-      List<Offset> points,
-      List<Offset> currentMedian,
-      double startEndMargin,
-      ) {
+    List<Offset> points,
+    List<Offset> currentMedian,
+    double startEndMargin,
+  ) {
     final strokeStartWithinMargin =
         points.first.dx > currentMedian.first.dx - startEndMargin &&
             points.first.dx < currentMedian.first.dx + startEndMargin &&
@@ -290,10 +308,10 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   bool _strokeEndIsWithinMargin(
-      List<Offset> points,
-      List<Offset> currentMedian,
-      double startEndMargin,
-      ) {
+    List<Offset> points,
+    List<Offset> currentMedian,
+    double startEndMargin,
+  ) {
     final strokeEndWithinMargin =
         points.last.dx > currentMedian.last.dx - startEndMargin &&
             points.last.dx < currentMedian.last.dx + startEndMargin &&
@@ -309,30 +327,48 @@ class TextStrokeOrderController extends ChangeNotifier {
 
   double _getStartEndMargin(double medianLength) {
     double startEndMargin;
+
+    // Be more lenient on short strokes
+    // if (medianLength < 150) {
+    //   startEndMargin = 50;
+    // } else {
+    //   startEndMargin = 50;
+    // }
     startEndMargin = 50;
     return startEndMargin;
   }
 
   List<double> _getAllowedLengthRange(double medianLength) {
     List<double> lengthRange;
+
+    // Be more lenient on short strokes
+    // if (medianLength < 150) {
+    //   lengthRange = [0.2, 3];
+    // } else {
+    // }
     lengthRange = [0.5, 3];
+
     return lengthRange.map((e) => e * medianLength).toList();
   }
 
   List<Offset> _getNonNullPointsFrom(List<Offset?> rawPoints) {
     final List<Offset> points = [];
+
     for (final point in rawPoints) {
       if (point != null) {
         points.add(point);
       }
     }
+
     return points;
   }
 
   double _getLength(List<Offset> points) {
     double pathLength = 0;
+
     final path = _convertOffsetsToPath(points);
     final pathMetrics = path.computeMetrics().toList();
+
     if (pathMetrics.isNotEmpty) {
       pathLength = pathMetrics.first.length;
     }
@@ -341,21 +377,23 @@ class TextStrokeOrderController extends ChangeNotifier {
 
   Path _convertOffsetsToPath(List<Offset> points) {
     final path = Path();
+
     if (points.length > 1) {
       path.moveTo(points[0].dx, points[0].dy);
       for (final point in points) {
         path.lineTo(point.dx, point.dy);
       }
     }
+
     return path;
   }
 
   bool _strokeHasRightDirection(
-      List<Offset> points,
-      List<Offset> currentMedian,
-      ) {
+    List<Offset> points,
+    List<Offset> currentMedian,
+  ) {
     return (_distance2D(points.first, currentMedian.first) <
-        _distance2D(points.last, currentMedian.first)) ||
+            _distance2D(points.last, currentMedian.first)) ||
         (_distance2D(points.last, currentMedian.last) <
             _distance2D(points.first, currentMedian.last));
   }
