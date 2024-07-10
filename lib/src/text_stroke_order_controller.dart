@@ -115,11 +115,7 @@ class TextStrokeOrderController extends ChangeNotifier {
 
   setSkipStrokeOrder() {
     listPathSegments[currentIndex].isSkipTutorial = true;
-    currentIndex++;
-    if (currentIndex < listPathSegments.length) {
-      listPathSegments[currentIndex].isTutorial = true;
-    }
-    notifyListeners();
+    _nextStroke();
   }
 
   updateTutorial() {
