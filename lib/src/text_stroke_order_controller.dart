@@ -114,8 +114,8 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   setSkipStrokeOrder() {
-    // ẩn dần các nét vẽ từ listPathSegments.length - 1 đến currentIndex
-    for (var i = listPathSegments.length - 1; i >= currentIndex; i--) {
+    // ẩn dần các nét vẽ từ currentIndex đến cuối
+    for (var i = currentIndex; i < listPathSegments.length; i++) {
       listPathSegments[i].isSkipTutorial = true;
     }
     notifyListeners();
