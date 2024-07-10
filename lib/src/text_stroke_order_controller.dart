@@ -118,6 +118,9 @@ class TextStrokeOrderController extends ChangeNotifier {
     for (var i = currentIndex; i < listPathSegments.length; i++) {
       listPathSegments[i].isSkipTutorial = true;
     }
+    listPathSegments[currentIndex].isSkipTutorial = false;
+    currentIndex = listPathSegments.indexWhere((element) => !element.isSkipTutorial);
+    listPathSegments[currentIndex].isTutorial = true;
     notifyListeners();
   }
 
