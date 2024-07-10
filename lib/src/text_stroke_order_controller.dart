@@ -114,8 +114,16 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   setSkipStrokeOrder() {
-    listPathSegments[currentIndex].isSkipTutorial = true;
-    _nextStroke();
+    // ẩn dần các nét vẽ cần vẽ theo thứ tự từng nét vẽ một
+    for (var i = 0; i < listPathSegments.length; i++) {
+      if (i != currentIndex) {
+        listPathSegments[i].isSkipTutorial = true;
+        listPathSegments[i].isTutorial = false;
+        listPathSegments[i].isDoneTutorial = true;
+        listPathSegments[i].tutorialPercent = 1;
+      }
+    }
+    notifyListeners();
   }
 
   updateTutorial() {
