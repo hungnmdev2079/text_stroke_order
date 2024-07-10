@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-
 import 'package:flutter/material.dart';
 
 import 'parser.dart';
@@ -115,15 +114,30 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   setRandomSkipStrokeOrder() {
-    currentIndex = listPathSegments.length - 1;
+    if (listPathSegments.length <= 1) {
+      currentIndex = 0;
+      return;
+    }
+    final partLenght = listPathSegments.length ~/ 2;
+    final List<int> idx = [];
     for (var i = 0; i < listPathSegments.length; i++) {
-      listPathSegments[i].isSkipTutorial = false;
       listPathSegments[i].isTutorial = false;
+      listPathSegments[i].isSkipTutorial = false;
       listPathSegments[i].tutorialPercent = 0;
       listPathSegments[i].currentIndexOffset = 0;
       listPathSegments[i].isDoneTutorial = false;
     }
-    updateTutorial();
+    // ẩn lần lượt các phần tử trong list theo thứ tự từ dứoi lên
+    for (var i = 0; i < partLenght; i++) {
+      final x = Random().nextInt(listPathSegments.length);
+      if (!idx.contains(x)) {
+        idx.add(x);
+      } else {
+        i--;
+      }
+    }
+    currentIndex =
+        listPathSegments.indexWhere((element) => !element.isSkipTutorial);
   }
 
   updateTutorial() {
