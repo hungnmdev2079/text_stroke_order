@@ -115,33 +115,15 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   setRandomSkipStrokeOrder() {
-    if (listPathSegments.length <= 1) {
-      currentIndex = 0;
-      return;
-    }
-    final partLenght = listPathSegments.length ~/ 2;
-    final List<int> idx = [];
+    currentIndex = listPathSegments.length - 1;
     for (var i = 0; i < listPathSegments.length; i++) {
-      listPathSegments[i].isTutorial = false;
       listPathSegments[i].isSkipTutorial = false;
+      listPathSegments[i].isTutorial = false;
       listPathSegments[i].tutorialPercent = 0;
       listPathSegments[i].currentIndexOffset = 0;
       listPathSegments[i].isDoneTutorial = false;
     }
-    while (idx.length < partLenght) {
-      // hiển thị lần lượt từng phần cho đến khi hết phần
-      final x = idx.length;
-      final y = x + partLenght;
-      if (y < listPathSegments.length) {
-        idx.add(x);
-        idx.add(y);
-      } else {
-        idx.add(x);
-      }
-
-    }
-    currentIndex =
-        listPathSegments.indexWhere((element) => !element.isSkipTutorial);
+    updateTutorial();
   }
 
   updateTutorial() {
