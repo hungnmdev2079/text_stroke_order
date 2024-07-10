@@ -120,7 +120,6 @@ class TextStrokeOrderController extends ChangeNotifier {
         listPathSegments[i].isSkipTutorial = true;
         listPathSegments[i].isTutorial = false;
         listPathSegments[i].isDoneTutorial = true;
-        listPathSegments[i].tutorialPercent = 1;
       }
     }
     notifyListeners();
