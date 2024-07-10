@@ -114,13 +114,13 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   setSkipStrokeOrder() {
-    // ẩn dần các nét vẽ từ currentIndex đến 0
-    for (var i = currentIndex; i >= 0; i--) {
+    // ẩn dần các nét vẽ từ listPathSegments.length - 1 đến currentIndex
+    for (var i = listPathSegments.length - 1; i >= currentIndex; i--) {
       listPathSegments[i].isSkipTutorial = true;
     }
+
     // tìm currentIndex tiếp theo
-    currentIndex =
-        listPathSegments.indexWhere((element) => !element.isSkipTutorial);
+    currentIndex = listPathSegments.indexWhere((element) => !element.isSkipTutorial);
 
     // Check if there are no more segments to draw
     if (currentIndex == -1) {
@@ -142,6 +142,7 @@ class TextStrokeOrderController extends ChangeNotifier {
 
     notifyListeners();
   }
+
 
 
   updateTutorial() {
