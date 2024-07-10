@@ -118,11 +118,31 @@ class TextStrokeOrderController extends ChangeNotifier {
     for (var i = currentIndex; i < listPathSegments.length; i++) {
       listPathSegments[i].isSkipTutorial = true;
     }
-    listPathSegments[currentIndex].isSkipTutorial = false;
+
+    // tìm currentIndex tiếp theo
     currentIndex = listPathSegments.indexWhere((element) => !element.isSkipTutorial);
-    listPathSegments[currentIndex].isTutorial = true;
+
+    // Check if there are no more segments to draw
+    if (currentIndex == -1) {
+      // No more segments to draw, handle this scenario
+      currentIndex = 0; // or any other appropriate logic
+    } else {
+      listPathSegments[currentIndex].isTutorial = true;
+    }
+
+    // Reset the states of the other segments
+    for (var i = 0; i < listPathSegments.length; i++) {
+      if (i != currentIndex) {
+        listPathSegments[i].isTutorial = false;
+      }
+      listPathSegments[i].tutorialPercent = 0;
+      listPathSegments[i].currentIndexOffset = 0;
+      listPathSegments[i].isDoneTutorial = false;
+    }
+
     notifyListeners();
   }
+
 
 
 
