@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+
 import 'parser.dart';
 import 'svg_provider.dart';
 import 'type.dart';
@@ -11,12 +13,12 @@ class TextStrokeOrderController extends ChangeNotifier {
   TextStrokeOrderController(
       {required this.svgProvider, required TickerProvider vsync, this.duration})
       : animationController =
-  AnimationController(vsync: vsync, duration: duration);
+            AnimationController(vsync: vsync, duration: duration);
 
   StreamController<DrawState> drawStreamState =
-  StreamController<DrawState>.broadcast();
+      StreamController<DrawState>.broadcast();
   StreamController<HandDrawState> handDrawStreamState =
-  StreamController<HandDrawState>.broadcast();
+      StreamController<HandDrawState>.broadcast();
 
   int currentIndex = 0;
 
@@ -96,7 +98,8 @@ class TextStrokeOrderController extends ChangeNotifier {
 
   reset() {
     _resetStateDraw();
-    currentIndex = 0;
+    currentIndex =
+        listPathSegments.indexWhere((element) => !element.isSkipTutorial);
     listPathSegments[currentIndex].isTutorial = true;
 
     for (var i = 0; i < listPathSegments.length; i++) {
@@ -110,16 +113,30 @@ class TextStrokeOrderController extends ChangeNotifier {
     notifyListeners();
   }
 
-  setSequentialStrokeOrder() {
-    // hiển thị các nét gợi ý ít dần dần
+  setRandomSkipStrokeOrder() {
+    if (listPathSegments.length <= 1) {
+      currentIndex = 0;
+      return;
+    }
+    final partLenght = listPathSegments.length ~/ 2;
+    final List<int> idx = [];
     for (var i = 0; i < listPathSegments.length; i++) {
-      listPathSegments[i].isTutorial = true;
-      listPathSegments[i].isDoneTutorial = false;
+      listPathSegments[i].isTutorial = false;
+      listPathSegments[i].isSkipTutorial = false;
       listPathSegments[i].tutorialPercent = 0;
       listPathSegments[i].currentIndexOffset = 0;
+      listPathSegments[i].isDoneTutorial = false;
     }
-    notifyListeners();
-    updateTutorial();
+    while (idx.length < partLenght) {
+      Random random = Random();
+      int x = random.nextInt(listPathSegments.length);
+      if (!idx.contains(x)) {
+        listPathSegments[x].isSkipTutorial = true;
+        idx.add(x);
+      }
+    }
+    currentIndex =
+        listPathSegments.indexWhere((element) => !element.isSkipTutorial);
   }
 
   updateTutorial() {
@@ -147,6 +164,7 @@ class TextStrokeOrderController extends ChangeNotifier {
     if (!canDraw) {
       return;
     }
+    // _resetStateDraw();
     final o = position;
     final x = findNearestIndexOffset(
         listPathSegments[currentIndex].currentIndexOffset, o, currentOffset!);
@@ -159,7 +177,7 @@ class TextStrokeOrderController extends ChangeNotifier {
     if (percent >= 0.95) {
       percent = 1;
       listPathSegments[currentIndex].isDoneTutorial = true;
-      listPathSegments[currentIndex].tutorialPercent = 0; // Ẩn nét khi hoàn thành
+      listPathSegments[currentIndex].tutorialPercent = percent;
       _nextStroke();
     } else {
       listPathSegments[currentIndex].tutorialPercent = percent;
@@ -169,7 +187,7 @@ class TextStrokeOrderController extends ChangeNotifier {
 
   bool nextStroke() {
     listPathSegments[currentIndex].isDoneTutorial = true;
-    listPathSegments[currentIndex].tutorialPercent = 0;
+    listPathSegments[currentIndex].tutorialPercent = 1;
     listPathSegments[currentIndex].currentIndexOffset =
         listPathSegments[currentIndex].getOffsets.length;
     final canNext = _nextStroke();
@@ -180,11 +198,14 @@ class TextStrokeOrderController extends ChangeNotifier {
   bool _nextStroke() {
     if (currentIndex < listPathSegments.length - 1) {
       try {
-        currentIndex++;
+        do {
+          currentIndex++;
+        } while (listPathSegments[currentIndex].isSkipTutorial);
         updateTutorial();
         _onEndStroke();
         return true;
       } catch (e) {
+        currentIndex--;
         _onFinish();
         return false;
       }
@@ -226,7 +247,7 @@ class TextStrokeOrderController extends ChangeNotifier {
     final bool isCorrect = _checkStroke(currentOffset ?? [], rawStroke);
     if (isCorrect) {
       listPathSegments[currentIndex].isDoneTutorial = true;
-      listPathSegments[currentIndex].tutorialPercent = 0;
+      listPathSegments[currentIndex].tutorialPercent = 1;
       listPathSegments[currentIndex].currentIndexOffset =
           listPathSegments[currentIndex].getOffsets.length;
       if (currentIndex < listPathSegments.length - 1) {
@@ -254,7 +275,7 @@ class TextStrokeOrderController extends ChangeNotifier {
     final medianLength = _getLength(median);
 
     final List<double> allowedLengthRange =
-    _getAllowedLengthRange(medianLength);
+        _getAllowedLengthRange(medianLength);
     final double startEndMargin = _getStartEndMargin(medianLength);
 
     bool isCorrect = false;
@@ -269,10 +290,10 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   bool _strokeStartIsWithinMargin(
-      List<Offset> points,
-      List<Offset> currentMedian,
-      double startEndMargin,
-      ) {
+    List<Offset> points,
+    List<Offset> currentMedian,
+    double startEndMargin,
+  ) {
     final strokeStartWithinMargin =
         points.first.dx > currentMedian.first.dx - startEndMargin &&
             points.first.dx < currentMedian.first.dx + startEndMargin &&
@@ -282,10 +303,10 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   bool _strokeEndIsWithinMargin(
-      List<Offset> points,
-      List<Offset> currentMedian,
-      double startEndMargin,
-      ) {
+    List<Offset> points,
+    List<Offset> currentMedian,
+    double startEndMargin,
+  ) {
     final strokeEndWithinMargin =
         points.last.dx > currentMedian.last.dx - startEndMargin &&
             points.last.dx < currentMedian.last.dx + startEndMargin &&
@@ -301,13 +322,27 @@ class TextStrokeOrderController extends ChangeNotifier {
 
   double _getStartEndMargin(double medianLength) {
     double startEndMargin;
+
+    // Be more lenient on short strokes
+    // if (medianLength < 150) {
+    //   startEndMargin = 50;
+    // } else {
+    //   startEndMargin = 50;
+    // }
     startEndMargin = 50;
     return startEndMargin;
   }
 
   List<double> _getAllowedLengthRange(double medianLength) {
     List<double> lengthRange;
+
+    // Be more lenient on short strokes
+    // if (medianLength < 150) {
+    //   lengthRange = [0.2, 3];
+    // } else {
+    // }
     lengthRange = [0.5, 3];
+
     return lengthRange.map((e) => e * medianLength).toList();
   }
 
@@ -349,11 +384,11 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   bool _strokeHasRightDirection(
-      List<Offset> points,
-      List<Offset> currentMedian,
-      ) {
+    List<Offset> points,
+    List<Offset> currentMedian,
+  ) {
     return (_distance2D(points.first, currentMedian.first) <
-        _distance2D(points.last, currentMedian.first)) ||
+            _distance2D(points.last, currentMedian.first)) ||
         (_distance2D(points.last, currentMedian.last) <
             _distance2D(points.first, currentMedian.last));
   }
