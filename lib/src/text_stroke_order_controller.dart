@@ -111,14 +111,14 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   setSequentialStrokeOrder() {
-    currentIndex = 0;
+    // hiển thị các nét gợi ý ít dần dần
     for (var i = 0; i < listPathSegments.length; i++) {
-      listPathSegments[i].isSkipTutorial = false;
-      listPathSegments[i].isTutorial = false;
+      listPathSegments[i].isTutorial = true;
+      listPathSegments[i].isDoneTutorial = false;
       listPathSegments[i].tutorialPercent = 0;
       listPathSegments[i].currentIndexOffset = 0;
-      listPathSegments[i].isDoneTutorial = false;
     }
+    notifyListeners();
     updateTutorial();
   }
 
