@@ -127,13 +127,12 @@ class TextStrokeOrderController extends ChangeNotifier {
       listPathSegments[i].currentIndexOffset = 0;
       listPathSegments[i].isDoneTutorial = false;
     }
-    // ẩn lần lượt các phần tử trong list theo thứ tự từ dứoi lên
-    for (var i = 0; i < partLenght; i++) {
-      final x = Random().nextInt(listPathSegments.length);
+    while (idx.length < partLenght) {
+      Random random = Random();
+      int x = random.nextInt(listPathSegments.length);
       if (!idx.contains(x)) {
+        listPathSegments[x].isSkipTutorial = true;
         idx.add(x);
-      } else {
-        i--;
       }
     }
     currentIndex =
