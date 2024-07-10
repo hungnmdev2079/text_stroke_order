@@ -56,7 +56,7 @@ class _SequentialStrokeOrderState extends State<SequentialStrokeOrder> {
     super.initState();
     widget.controller.animationController.forward();
     if (widget.randomSkipTutorial) {
-      widget.controller.setSkipStrokeOrder();
+      widget.controller.setRandomSkipStrokeOrder();
     }
     // widget.controller.updateAnimateStrokeColor(widget.animatingStrokeColor);
     widget.controller.updateTutorial();

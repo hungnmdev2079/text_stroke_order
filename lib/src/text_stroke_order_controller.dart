@@ -113,19 +113,30 @@ class TextStrokeOrderController extends ChangeNotifier {
     notifyListeners();
   }
 
-  setSkipStrokeOrder() {
-    // ẩn dần các nét vẽ cần vẽ 3 nét một lần
+  setRandomSkipStrokeOrder() {
+    if (listPathSegments.length <= 1) {
+      currentIndex = 0;
+      return;
+    }
+    final partLenght = listPathSegments.length ~/ 2;
+    final List<int> idx = [];
     for (var i = 0; i < listPathSegments.length; i++) {
-      if (i % 3 == 0) {
-        listPathSegments[i].isSkipTutorial = true;
+      listPathSegments[i].isTutorial = false;
+      listPathSegments[i].isSkipTutorial = false;
+      listPathSegments[i].tutorialPercent = 0;
+      listPathSegments[i].currentIndexOffset = 0;
+      listPathSegments[i].isDoneTutorial = false;
+    }
+    while (idx.length < partLenght) {
+      Random random = Random();
+      int x = random.nextInt(listPathSegments.length);
+      if (!idx.contains(x)) {
+        listPathSegments[x].isSkipTutorial = true;
+        idx.add(x);
       }
     }
-
-    // tìm vị trí nét vẽ đầu tiên không bị skip
     currentIndex =
         listPathSegments.indexWhere((element) => !element.isSkipTutorial);
-    listPathSegments[currentIndex].isTutorial = true;
-    notifyListeners();
   }
 
   updateTutorial() {
