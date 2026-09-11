@@ -51,12 +51,41 @@ class SequentialStrokeOrder extends StatefulWidget {
 class _SequentialStrokeOrderState extends State<SequentialStrokeOrder> {
   StreamSubscription<DrawState>? drawStateListener;
   DrawState drawState = DrawState.none;
+  int? _activePointer;
 
   EdgeInsetsGeometry get _padding => widget.padding ?? EdgeInsets.zero;
 
   Offset _toDrawingPosition(Offset localPosition) {
     final padding = _padding;
     return localPosition - Offset(padding.horizontal / 2, padding.vertical / 2);
+  }
+
+  void _startStroke(PointerDownEvent event) {
+    if (_activePointer != null) {
+      return;
+    }
+    _activePointer = event.pointer;
+    widget.controller.startDrawCheck(_toDrawingPosition(event.localPosition));
+  }
+
+  void _updateStroke(PointerMoveEvent event) {
+    if (_activePointer != event.pointer) {
+      return;
+    }
+    widget.controller.updateDrawTutorial(
+      _toDrawingPosition(event.localPosition),
+    );
+  }
+
+  void _finishStroke(int pointer, {required bool notifyEndDraw}) {
+    if (_activePointer != pointer) {
+      return;
+    }
+    widget.controller.endDrawCheck();
+    _activePointer = null;
+    if (notifyEndDraw) {
+      widget.onEndDraw?.call();
+    }
   }
 
   @override
@@ -100,62 +129,50 @@ class _SequentialStrokeOrderState extends State<SequentialStrokeOrder> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (details) {
-        widget.controller.startDrawCheck(_toDrawingPosition(
-          details.localPosition,
-        ));
-      },
-      onPanStart: (details) {
-        if (widget.controller.canDraw) {
-          return;
-        }
-        widget.controller.startDrawCheck(_toDrawingPosition(
-          details.localPosition,
-        ));
-      },
-      onPanCancel: () {
-        widget.controller.endDrawCheck();
-      },
-      onPanEnd: (details) {
-        widget.controller.endDrawCheck();
-        widget.onEndDraw?.call();
-      },
-      onPanUpdate: (details) {
-        widget.controller.updateDrawTutorial(_toDrawingPosition(
-          details.localPosition,
-        ));
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: widget.backgroundColor ?? Colors.transparent,
-          border: widget.border,
-          borderRadius: widget.borderRadius == null
-              ? null
-              : BorderRadius.circular(widget.borderRadius!),
-        ),
-        padding: _padding,
-        child: CustomPaint(
-          painter: PaintedPainter(
-            animation: widget.controller.animationController,
-            pathSegments: widget.controller.listPathSegments,
-            isFinish: drawState == DrawState.finish,
-            textSegments: widget.isShowNumber
-                ? widget.controller.parser!.getTextSegments().map((e) {
-                    final segment = e;
-                    if (widget.numberStyle != null) {
-                      segment.textStyle = widget.numberStyle!;
-                    }
-                    return segment;
-                  }).toList()
-                : [],
-            hintSetting: widget.hintSetting,
-            tutorialPathSetting: widget.tutorialPathSetting,
-            handlePositionCallback: widget.controller.updateHandlePosision,
-            getListCurrentOffsets: widget.controller.updateListCurrentOffsets,
+      behavior: HitTestBehavior.opaque,
+      onPanUpdate: (_) {},
+      child: Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerDown: _startStroke,
+        onPointerMove: _updateStroke,
+        onPointerUp: (event) {
+          _finishStroke(event.pointer, notifyEndDraw: true);
+        },
+        onPointerCancel: (event) {
+          _finishStroke(event.pointer, notifyEndDraw: false);
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: widget.backgroundColor ?? Colors.transparent,
+            border: widget.border,
+            borderRadius: widget.borderRadius == null
+                ? null
+                : BorderRadius.circular(widget.borderRadius!),
           ),
-          child: SizedBox(
-            width: widget.width - (widget.padding?.horizontal ?? 0),
-            height: widget.height - (widget.padding?.vertical ?? 0),
+          padding: _padding,
+          child: CustomPaint(
+            painter: PaintedPainter(
+              animation: widget.controller.animationController,
+              pathSegments: widget.controller.listPathSegments,
+              isFinish: drawState == DrawState.finish,
+              textSegments: widget.isShowNumber
+                  ? widget.controller.parser!.getTextSegments().map((e) {
+                      final segment = e;
+                      if (widget.numberStyle != null) {
+                        segment.textStyle = widget.numberStyle!;
+                      }
+                      return segment;
+                    }).toList()
+                  : [],
+              hintSetting: widget.hintSetting,
+              tutorialPathSetting: widget.tutorialPathSetting,
+              handlePositionCallback: widget.controller.updateHandlePosision,
+              getListCurrentOffsets: widget.controller.updateListCurrentOffsets,
+            ),
+            child: SizedBox(
+              width: widget.width - (widget.padding?.horizontal ?? 0),
+              height: widget.height - (widget.padding?.vertical ?? 0),
+            ),
           ),
         ),
       ),

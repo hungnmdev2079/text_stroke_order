@@ -46,7 +46,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
       // svgProvider: SvgProvider.string(svg),
 
       svgProvider: SvgProvider.network(
-          'https://raw.githubusercontent.com/tranquockhanh0506/hanzivg_khanhtq/master/kanji/054e5.svg'),
+          'https://raw.githubusercontent.com/tranquockhanh0506/hanzivg_khanhtq/master/kanji/03083.svg'),
       vsync: this,
       duration: const Duration(milliseconds: 800));
 
@@ -79,8 +79,8 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
               TextStrokeOrder.sequentialStroke(
                 controller: controller,
                 isFreeDraw: false,
-                width: 500,
-                height: 500,
+                width: 100,
+                height: 100,
                 padding: const EdgeInsets.all(20),
                 handWriteSetting: HandWriteSetting(size: stroke),
                 hintSetting: HintSetting(strokeWidth: stroke, enable: false),

@@ -567,6 +567,14 @@ class HandWritePainter extends PathPainter {
       ..strokeWidth = strokeSize * scale.x;
     Path path = Path();
     if (points.isNotEmpty) {
+      if (points.length == 1) {
+        canvas.drawCircle(
+          points.first,
+          paint.strokeWidth / 2,
+          Paint()..color = strokeColor,
+        );
+        return;
+      }
       path.moveTo(points.first.dx, points.first.dy);
       for (int i = 0; i < points.length - 1; i++) {
         Offset midPoint = Offset((points[i].dx + points[i + 1].dx) / 2,
