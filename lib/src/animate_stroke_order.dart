@@ -51,7 +51,7 @@ class _AnimationStrokeOrderState extends State<AnimationStrokeOrder> {
     widget.controller.animationController.addListener(_listener);
   }
 
-  _listener() {
+  void _listener() {
     if (widget.controller.animationController.isCompleted) {
       widget.onFinish?.call();
     }
@@ -65,8 +65,8 @@ class _AnimationStrokeOrderState extends State<AnimationStrokeOrder> {
 
   @override
   void dispose() {
+    widget.controller.animationController.removeListener(_listener);
     super.dispose();
-    widget.controller.removeListener(_listener);
   }
 
   @override
@@ -74,7 +74,14 @@ class _AnimationStrokeOrderState extends State<AnimationStrokeOrder> {
     return AnimatedBuilder(
       animation: widget.controller.animationController,
       builder: (context, child) {
-        return Padding(
+        return Container(
+          decoration: BoxDecoration(
+            color: widget.backgroundColor,
+            border: widget.border,
+            borderRadius: widget.borderRadius == null
+                ? null
+                : BorderRadius.circular(widget.borderRadius!),
+          ),
           padding: widget.padding ?? EdgeInsets.zero,
           child: CustomPaint(
             painter: OneByOnePainter(

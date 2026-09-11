@@ -52,11 +52,13 @@ class TextStrokeOrderController extends ChangeNotifier {
 
   @override
   void dispose() {
-    super.dispose();
     animationController.dispose();
+    drawStreamState.close();
+    handDrawStreamState.close();
+    super.dispose();
   }
 
-  initialAnimate(bool autoAnimate) {
+  void initialAnimate(bool autoAnimate) {
     final d = duration ?? const Duration(seconds: 1);
     animationController.duration = d * listPathSegments.length;
     if (autoAnimate) {
@@ -64,12 +66,12 @@ class TextStrokeOrderController extends ChangeNotifier {
     }
   }
 
-  startAnimation() {
+  void startAnimation() {
     animationController.reset();
     animationController.forward();
   }
 
-  resetAnimation() {
+  void resetAnimation() {
     animationController.reset();
   }
 
@@ -84,22 +86,24 @@ class TextStrokeOrderController extends ChangeNotifier {
   }
 
   Future<bool> preloadSvg() async {
-    Completer<bool> completer = Completer();
     try {
-      await resolve.then((value) {
-        completer.complete(true);
-      });
+      await resolve;
+      return true;
     } catch (e) {
-      completer.complete(false);
+      return false;
     }
-
-    return completer.future;
   }
 
-  reset() {
+  void reset() {
+    if (listPathSegments.isEmpty) {
+      return;
+    }
     _resetStateDraw();
     currentIndex =
         listPathSegments.indexWhere((element) => !element.isSkipTutorial);
+    if (currentIndex == -1) {
+      currentIndex = 0;
+    }
     listPathSegments[currentIndex].isTutorial = true;
 
     for (var i = 0; i < listPathSegments.length; i++) {
@@ -113,13 +117,14 @@ class TextStrokeOrderController extends ChangeNotifier {
     notifyListeners();
   }
 
-  setRandomSkipStrokeOrder() {
+  void setRandomSkipStrokeOrder() {
     if (listPathSegments.length <= 1) {
       currentIndex = 0;
       return;
     }
     final partLenght = listPathSegments.length ~/ 2;
     final List<int> idx = [];
+    final random = Random();
     for (var i = 0; i < listPathSegments.length; i++) {
       listPathSegments[i].isTutorial = false;
       listPathSegments[i].isSkipTutorial = false;
@@ -128,8 +133,7 @@ class TextStrokeOrderController extends ChangeNotifier {
       listPathSegments[i].isDoneTutorial = false;
     }
     while (idx.length < partLenght) {
-      Random random = Random();
-      int x = random.nextInt(listPathSegments.length);
+      final x = random.nextInt(listPathSegments.length);
       if (!idx.contains(x)) {
         listPathSegments[x].isSkipTutorial = true;
         idx.add(x);
@@ -139,13 +143,16 @@ class TextStrokeOrderController extends ChangeNotifier {
         listPathSegments.indexWhere((element) => !element.isSkipTutorial);
   }
 
-  updateTutorial() {
+  void updateTutorial() {
+    if (listPathSegments.isEmpty || currentIndex < 0) {
+      return;
+    }
     canDraw = false;
     listPathSegments[currentIndex].isTutorial = true;
     notifyListeners();
   }
 
-  startDrawCheck(Offset position) {
+  void startDrawCheck(Offset position) {
     if (handlePosition == null) {
       return;
     }
@@ -156,20 +163,21 @@ class TextStrokeOrderController extends ChangeNotifier {
     }
   }
 
-  endDrawCheck() {
+  void endDrawCheck() {
     canDraw = false;
   }
 
-  updateDrawTutorial(Offset position) {
-    if (!canDraw) {
+  void updateDrawTutorial(Offset position) {
+    final offsets = currentOffset;
+    if (!canDraw || offsets == null || offsets.length < 2) {
       return;
     }
     // _resetStateDraw();
     final o = position;
     final x = findNearestIndexOffset(
-        listPathSegments[currentIndex].currentIndexOffset, o, currentOffset!);
+        listPathSegments[currentIndex].currentIndexOffset, o, offsets);
     listPathSegments[currentIndex].currentIndexOffset = x;
-    var percent = x / (currentOffset!.length - 1);
+    var percent = x / (offsets.length - 1);
 
     if (listPathSegments[currentIndex].isDoneTutorial == true) {
       return;
@@ -215,31 +223,31 @@ class TextStrokeOrderController extends ChangeNotifier {
     }
   }
 
-  _onFinish() {
+  void _onFinish() {
     drawStreamState.add(DrawState.finish);
   }
 
-  _onEndStroke() {
+  void _onEndStroke() {
     drawStreamState.add(DrawState.endStroke);
   }
 
-  _onUpdateHandDrawCorrect() {
+  void _onUpdateHandDrawCorrect() {
     handDrawStreamState.add(HandDrawState.correct);
   }
 
-  _onUpdateHandDrawIncorrect() {
+  void _onUpdateHandDrawIncorrect() {
     handDrawStreamState.add(HandDrawState.inCorrect);
   }
 
-  _resetStateDraw() {
+  void _resetStateDraw() {
     drawStreamState.add(DrawState.none);
   }
 
-  updateHandlePosision(Offset position) {
+  void updateHandlePosision(Offset position) {
     handlePosition = position;
   }
 
-  updateListCurrentOffsets(List<Offset> offsets) {
+  void updateListCurrentOffsets(List<Offset> offsets) {
     currentOffset = offsets;
   }
 
@@ -271,6 +279,9 @@ class TextStrokeOrderController extends ChangeNotifier {
 
   bool _strokeIsCorrect(
       List<Offset> targetStoke, double strokeLength, List<Offset> stroke) {
+    if (targetStoke.isEmpty || stroke.isEmpty) {
+      return false;
+    }
     final median = targetStoke;
     final medianLength = _getLength(median);
 
@@ -399,21 +410,43 @@ class TextStrokeOrderController extends ChangeNotifier {
 
   int findNearestIndexOffset(
       int lastIndex, Offset targetOffset, List<Offset> offsets) {
+    if (offsets.isEmpty) {
+      return lastIndex;
+    }
+
+    final safeLastIndex = lastIndex < 0
+        ? 0
+        : lastIndex >= offsets.length
+            ? offsets.length - 1
+            : lastIndex;
     double minDistance = double.infinity;
-    int index = 0;
-    for (int i = 0; i < offsets.length; i++) {
-      Offset offset = offsets[i];
-      double distance = (offset - targetOffset).distanceSquared;
+    int nearestIndex = safeLastIndex;
+    for (int i = safeLastIndex; i < offsets.length; i++) {
+      final distance = (offsets[i] - targetOffset).distanceSquared;
       if (distance < minDistance) {
         minDistance = distance;
-        final x = i - lastIndex;
-        if (x < 20 && i >= lastIndex) {
-          index = i;
-        } else {
-          index = lastIndex;
-        }
+        nearestIndex = i;
       }
     }
-    return index;
+
+    final indexAdvance = nearestIndex - safeLastIndex;
+    if (indexAdvance < 20) {
+      return nearestIndex;
+    }
+
+    // Offsets are already transformed into the rendered canvas coordinates.
+    // On a small canvas many SVG samples can fit inside a short finger move,
+    // so limiting progress only by sample count makes drawing get stuck after
+    // GestureDetector's initial touch slop. Keep the old sample guard, but
+    // allow a larger index jump when it is still a short on-screen movement.
+    double renderedAdvance = 0;
+    for (int i = safeLastIndex + 1; i <= nearestIndex; i++) {
+      renderedAdvance += (offsets[i] - offsets[i - 1]).distance;
+      if (renderedAdvance > 30) {
+        return safeLastIndex;
+      }
+    }
+
+    return nearestIndex;
   }
 }

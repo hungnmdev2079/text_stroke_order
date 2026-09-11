@@ -60,6 +60,16 @@ class _SequentialStrokeWithFreeDrawState
   StreamSubscription<DrawState>? drawStateListener;
   StreamSubscription<HandDrawState>? handDrawStateListener;
   DrawState drawState = DrawState.none;
+
+  final List<Offset> points = [];
+
+  EdgeInsetsGeometry get _padding => widget.padding ?? EdgeInsets.zero;
+
+  Offset _toDrawingPosition(Offset localPosition) {
+    final padding = _padding;
+    return localPosition - Offset(padding.horizontal / 2, padding.vertical / 2);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -106,29 +116,21 @@ class _SequentialStrokeWithFreeDrawState
 
   @override
   void dispose() {
-    super.dispose();
     widget.controller.removeListener(_listener);
     drawStateListener?.cancel();
     handDrawStateListener?.cancel();
+    super.dispose();
   }
-
-  List<Offset> points = [];
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (details) {
         points.clear();
-        final p = details.localPosition -
-            Offset(
-                widget.padding!.horizontal / 2, widget.padding!.vertical / 2);
-        points.add(p);
+        points.add(_toDrawingPosition(details.localPosition));
       },
       onPanStart: (details) {
-        final p = details.localPosition -
-            Offset(
-                widget.padding!.horizontal / 2, widget.padding!.vertical / 2);
-        points.add(p);
+        points.add(_toDrawingPosition(details.localPosition));
       },
       onPanCancel: () {
         widget.controller.checkHandWriteStroke(points);
@@ -142,15 +144,18 @@ class _SequentialStrokeWithFreeDrawState
         widget.onEndDraw?.call();
       },
       onPanUpdate: (details) {
-        final p = details.localPosition -
-            Offset(
-                widget.padding!.horizontal / 2, widget.padding!.vertical / 2);
-        points.add(p);
+        points.add(_toDrawingPosition(details.localPosition));
         setState(() {});
       },
       child: Container(
-        color: Colors.transparent,
-        padding: widget.padding ?? EdgeInsets.zero,
+        decoration: BoxDecoration(
+          color: widget.backgroundColor ?? Colors.transparent,
+          border: widget.border,
+          borderRadius: widget.borderRadius == null
+              ? null
+              : BorderRadius.circular(widget.borderRadius!),
+        ),
+        padding: _padding,
         child: CustomPaint(
           painter: PaintedPainter(
             animation: widget.controller.animationController,

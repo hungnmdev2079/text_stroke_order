@@ -1,4 +1,6 @@
 // This code has been "translated" largely from the Chromium/blink source
+// ignore_for_file: library_private_types_in_public_api, deprecated_member_use
+//
 // for SVG path parsing.
 // The following files can be cross referenced to the classes and methods here:
 //   * https://github.com/chromium/chromium/blob/master/third_party/blink/renderer/core/svg/svg_parser_utilities.cc

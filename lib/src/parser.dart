@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:xml/xml.dart' as xml;
-import 'package:xml/xml.dart';
-import 'package:collection/collection.dart';
 
 import 'path_parsing/path_parsing.dart';
 
@@ -19,8 +17,8 @@ class SvgParser {
   Color parseColor(String cStr) {
     if (cStr.isEmpty) throw UnsupportedError('Empty color field found.');
     if (cStr[0] == '#') {
-      return Color(int.parse(cStr.substring(1), radix: 16)).withOpacity(
-          1.0); // Hex to int: from https://stackoverflow.com/a/51290420/9452450
+      return Color(int.parse(cStr.substring(1), radix: 16))
+          .withValues(alpha: 1);
     } else if (cStr == 'none') {
       return Colors.transparent;
     } else {
@@ -58,15 +56,17 @@ class SvgParser {
 
   void loadFromString(String svgString) {
     _pathSegments.clear();
+    _textSegments.clear();
+    _paths.clear();
     var index = 0; //number of parsed path elements
-    RegExp regex = RegExp(r'<svg(.*?)<\/svg>', dotAll: true);
-    Iterable<Match> matches = regex.allMatches(svgString);
+    final regex = RegExp(r'<svg(.*?)<\/svg>', dotAll: true);
+    final matches = regex.allMatches(svgString);
     String svg = '';
-    for (Match match in matches) {
-      String svgContent = match.group(0)!;
+    for (final match in matches) {
+      final svgContent = match.group(0)!;
       svg = svgContent;
     }
-    var doc = XmlDocument.parse(svg);
+    final doc = xml.XmlDocument.parse(svg.isEmpty ? svgString : svg);
     final style =
         doc.firstElementChild?.childElements.first.getAttributeNode('style');
 
@@ -76,14 +76,18 @@ class SvgParser {
     //
     if (style != null) {
       var exp = RegExp(r'stroke:([^;]+);');
-      var match = exp.firstMatch(style.value) as Match;
-      var cStr = match.group(1);
-      color = parseColor(cStr!);
+      var match = exp.firstMatch(style.value);
+      var cStr = match?.group(1);
+      if (cStr != null) {
+        color = parseColor(cStr);
+      }
       //Parse stroke-width
       exp = RegExp(r'stroke-width:([0-9.]+)');
-      match = exp.firstMatch(style.value)!;
-      cStr = match.group(1);
-      strokeWidth = double.tryParse(cStr!);
+      match = exp.firstMatch(style.value);
+      cStr = match?.group(1);
+      if (cStr != null) {
+        strokeWidth = double.tryParse(cStr);
+      }
     }
     double? fontSize;
     Color? textColor;
@@ -91,41 +95,43 @@ class SvgParser {
         doc.firstChild?.childElements.last.getAttributeNode('style');
     if (styleOfText != null) {
       var exp = RegExp(r'font-size:([0-9.]+)');
-      var match = exp.firstMatch(styleOfText.value) as Match;
-      var cStr = match.group(1);
-      fontSize = double.tryParse(cStr!);
+      var match = exp.firstMatch(styleOfText.value);
+      var cStr = match?.group(1);
+      if (cStr != null) {
+        fontSize = double.tryParse(cStr);
+      }
 
       exp = RegExp(r'fill:([^;]+)');
-      match = exp.firstMatch(styleOfText.value)!;
-      cStr = match.group(1);
-      textColor = parseColor(cStr!);
+      match = exp.firstMatch(styleOfText.value);
+      cStr = match?.group(1);
+      if (cStr != null) {
+        textColor = parseColor(cStr);
+      }
     }
 
     doc
         .findAllElements('path')
         .map((node) => node.attributes)
         .forEach((attributes) {
-      var dPath = attributes.firstWhereOrNull((attr) => attr.name.local == 'd');
+      final dPath = _attributeByName(attributes, 'd');
       if (dPath != null) {
-        var path = Path();
+        final path = Path();
         writeSvgPathDataToPath(dPath.value, PathModifier(path));
 
         //Attributes - [2] svg-attributes
-        var strokeElement =
-            attributes.firstWhereOrNull((attr) => attr.name.local == 'stroke');
+        final strokeElement = _attributeByName(attributes, 'stroke');
         if (strokeElement != null) {
           color = parseColor(strokeElement.value);
         }
 
-        var strokeWidthElement = attributes
-            .firstWhereOrNull((attr) => attr.name.local == 'stroke-width');
+        final strokeWidthElement = _attributeByName(attributes, 'stroke-width');
         if (strokeWidthElement != null) {
           strokeWidth = double.tryParse(strokeWidthElement.value);
         }
 
         _paths.add(path);
 
-        var id = attributes.firstWhereOrNull((attr) => attr.name.local == 'id');
+        final id = _attributeByName(attributes, 'id');
         if (id != null) {
           final idString = id.value.split('-s').last;
           final i = int.tryParse(idString);
@@ -146,8 +152,7 @@ class SvgParser {
     doc.findAllElements('text').forEach((element) {
       final text = element.innerText;
       final attributes = element.attributes;
-      var transform =
-          attributes.firstWhereOrNull((attr) => attr.name.local == 'transform');
+      final transform = _attributeByName(attributes, 'transform');
       double x = 0;
       double y = 0;
       if (transform != null) {
@@ -199,6 +204,18 @@ class SvgParser {
   /// Returns extracted [Path] elements of parsed Svg
   List<Path> getPaths() {
     return _paths;
+  }
+
+  xml.XmlAttribute? _attributeByName(
+    Iterable<xml.XmlAttribute> attributes,
+    String name,
+  ) {
+    for (final attribute in attributes) {
+      if (attribute.name.local == name) {
+        return attribute;
+      }
+    }
+    return null;
   }
 }
 

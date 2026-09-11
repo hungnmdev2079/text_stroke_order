@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_cache_manager/src/storage/file_system/file_system_io.dart';
 
 import 'parser.dart';
 
@@ -17,24 +16,26 @@ class SvgProvider {
     return SvgProvider._(Future.sync(() => parser));
   }
   factory SvgProvider.asset(String svgAsset) {
-    final SvgParser parser = SvgParser();
-    parser.loadFromAsset(svgAsset);
-    return SvgProvider._(Future.sync(() => parser));
+    return SvgProvider._(Future.microtask(() async {
+      final parser = SvgParser();
+      await parser.loadFromAsset(svgAsset);
+      return parser;
+    }));
   }
 
   factory SvgProvider.network(String url) {
-    return SvgProvider._(Future(() async {
-      final SvgParser parser = SvgParser();
+    return SvgProvider._(Future.microtask(() async {
+      final parser = SvgParser();
       final file = await _SvgCacheManager.instance.getSingleFile(url);
-      final s = file.readAsStringSync();
+      final s = await file.readAsString();
       parser.loadFromString(s);
       return parser;
     }));
   }
   factory SvgProvider.file(File file) {
-    return SvgProvider._(Future(() async {
-      final SvgParser parser = SvgParser();
-      final s = file.readAsStringSync();
+    return SvgProvider._(Future.microtask(() async {
+      final parser = SvgParser();
+      final s = await file.readAsString();
       parser.loadFromString(s);
       return parser;
     }));

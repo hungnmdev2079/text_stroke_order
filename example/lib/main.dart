@@ -59,6 +59,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final stroke = 8.0;
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -78,11 +79,16 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
               TextStrokeOrder.sequentialStroke(
                 controller: controller,
                 isFreeDraw: false,
-                width: 300,
-                height: 300,
+                width: 500,
+                height: 500,
                 padding: const EdgeInsets.all(20),
+                handWriteSetting: HandWriteSetting(size: stroke),
+                hintSetting: HintSetting(strokeWidth: stroke, enable: false),
+                randomSkipTutorial: false,
+                tutorialPathSetting: TutorialPathSetting(strokeWidth: stroke),
                 viewPortDashSetting: ViewPortDashSetting(
-                    color: const Color.fromARGB(255, 3, 3, 3).withOpacity(0.2)),
+                    color: const Color.fromARGB(255, 3, 3, 3)
+                        .withValues(alpha: 0.2)),
                 isShowNumber: false,
                 numberStyle: const TextStyle(
                     color: Colors.grey,
@@ -91,7 +97,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                 loadingBuilder: (context) => const SizedBox(),
                 // finishStrokeColor: Colors.green,
                 onFinish: () {
-                  print("FINISh");
+                  debugPrint("FINISH");
                 },
               ),
             ],

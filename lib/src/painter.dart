@@ -55,7 +55,7 @@ class PaintedPainter extends PathPainter {
       }
       for (var segment in pathSegments!) {
         if (segment.isTutorial && !segment.isSkipTutorial) {
-          final scale = calculateScaleFactor(Size.copy(size));
+          final scale = _calculateScaleFactor(Size.copy(size));
 
           var offset = Offset.zero - pathBoundingBox!.topLeft;
           var center = Offset(
@@ -93,7 +93,7 @@ class PaintedPainter extends PathPainter {
         tagent!.position,
         tutorialPathSetting.handleCircleSetting.size,
         Paint()..color = tutorialPathSetting.handleCircleSetting.color);
-    final scale = calculateScaleFactor(Size.copy(size));
+    final scale = _calculateScaleFactor(Size.copy(size));
 
     var offset = Offset.zero - pathBoundingBox!.topLeft;
     var center = Offset((size.width / scale.x - pathBoundingBox!.width) / 2,
@@ -375,13 +375,18 @@ abstract class PathPainter extends CustomPainter {
 
   // Get boundingBox by combining boundingBox of each PathSegment and inflating the resulting bounding box by half of the found max strokeWidth to do find a better solution. This does only work if the stroke with maxWidth defines on side of bounding box. Otherwise it results to unwanted padding.
   void calculateBoundingBox() {
+    if (pathSegments == null || pathSegments!.isEmpty) {
+      pathBoundingBox = null;
+      strokeWidth = 0;
+      return;
+    }
     var bb = pathSegments!.first.path.getBounds();
-    var strokeWidth = 0;
+    var maxStrokeWidth = 0;
 
     for (var e in pathSegments!) {
       bb = bb.expandToInclude(e.path.getBounds());
-      if (strokeWidth < e.strokeWidth) {
-        strokeWidth = e.strokeWidth.toInt();
+      if (maxStrokeWidth < e.strokeWidth) {
+        maxStrokeWidth = e.strokeWidth.toInt();
       }
     }
 
@@ -392,8 +397,8 @@ abstract class PathPainter extends CustomPainter {
     //     }
     //   }
     // }
-    pathBoundingBox = bb.inflate(strokeWidth / 2);
-    this.strokeWidth = strokeWidth.toDouble();
+    pathBoundingBox = bb.inflate(maxStrokeWidth / 2);
+    strokeWidth = maxStrokeWidth.toDouble();
   }
 
   void onFinish(Canvas canvas, Size size, {int lastPainted = -1}) {
@@ -409,10 +414,12 @@ abstract class PathPainter extends CustomPainter {
     canPaint = animation.status == AnimationStatus.forward ||
         animation.status == AnimationStatus.completed;
 
+    canPaint = canPaint && pathBoundingBox != null;
+
     if (canPaint) viewBoxToCanvas(canvas, size);
   }
 
-  _ScaleFactor calculateScaleFactor(Size viewBox) {
+  _ScaleFactor _calculateScaleFactor(Size viewBox) {
     //Scale factors
     var dx = (viewBox.width) / pathBoundingBox!.width;
     var dy = (viewBox.height) / pathBoundingBox!.height;
@@ -450,7 +457,7 @@ abstract class PathPainter extends CustomPainter {
 
     // }
     var viewBox = Size.copy(size);
-    var scale = calculateScaleFactor(viewBox);
+    var scale = _calculateScaleFactor(viewBox);
     canvas.scale(scale.x, scale.y);
 
     //If offset
@@ -549,7 +556,9 @@ class HandWritePainter extends PathPainter {
       : super(animation, pathSegments, []);
   @override
   void paint(Canvas canvas, Size size) {
-    final scale = calculateScaleFactor(size);
+    final scale = pathBoundingBox == null
+        ? const _ScaleFactor(1, 1)
+        : _calculateScaleFactor(size);
     final paint = Paint()
       ..color = strokeColor
       ..style = PaintingStyle.stroke
